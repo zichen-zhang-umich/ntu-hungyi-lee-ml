@@ -28,12 +28,18 @@ $$
 L = \frac{1}{N} \sum_{n} e_n
 $$
 
-$$
-x=3
-$$
+where $e_n$ can be calculated in many ways:
 
-The
+**Mean Absolute Error (MAE)**
 
 $$
-x
+e_n = |y_n - \hat{y}_n|
 $$
+
+**Mean Square Error (MSE)**
+
+$$
+e_n = (y_n - \hat{y}_n)^2
+$$
+
+If $y$ and $\hat{y}_n$ are both probability distributions, we can use **cross entropy**.
