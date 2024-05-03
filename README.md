@@ -43,3 +43,8 @@ e_n = (y_n - \hat{y}_n)^2
 $$
 
 If $y$ and $\hat{y}_n$ are both probability distributions, we can use **cross entropy**.
+
+![image-20240503102744604](assets/image-20240503102744604.png)
+
+### Optimization
+
