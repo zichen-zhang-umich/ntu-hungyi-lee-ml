@@ -23,10 +23,15 @@ Three main ML tasks:
 Loss is a function itself of parameters, written as $L(b,w)$​. 
 
 An example loss function is:
-
-$$L = \frac{1}{N} \sum_{n} e_n $$
 $$
 L = \frac{1}{N} \sum_{n} e_n
 $$
 
+$$
+x=3
+$$
 
+The
+$$
+x
+$$
