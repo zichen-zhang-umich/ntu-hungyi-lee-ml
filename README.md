@@ -16,7 +16,7 @@ Three main ML tasks:
 
 ### Function with unknown parameters
 
-*Guess* a function (**==model==**) $y=b+wx_1$ (in this case, a ***linear model***) based on **domain knowledge**. $w$ and $b$ are unknown parameters. 
+*Guess* a function (**model**) $y=b+wx_1$ (in this case, a ***linear model***) based on **domain knowledge**. $w$ and $b$ are unknown parameters. 
 
 ### Define Loss From Training Data
 
@@ -51,7 +51,7 @@ If $y$ and $\hat{y}_n$ are both probability distributions, we can use **cross en
 The goal is to find the best parameter:
 
 $$
-w^*, b^* = \arg\min_{w,b} L
+w^{*}, b^{*} = \arg\min_{w,b} L
 $$
 
 Solution: **Gradient Descent**
