@@ -126,7 +126,7 @@ Here, $i$ represents each sigmoid function and $j$ represents each feature. $w_{
 ![image-20240503132402405](assets/image-20240503132402405.png)
 
 $$
-y = b + \bold{c}^T \sigma(\bold{b} + W \bold{x})
+y = b + \boldsymbol{c}^T \sigma(\boldsymbol{b} + W \boldsymbol{x})
 $$
 
 $\boldsymbol{\theta}=[\theta_1, \theta_2, \theta_3, ...]^T$ is our parameter vector:
@@ -144,10 +144,26 @@ $$
 $$
 
 1. (Randomly) pick initial values $\boldsymbol{\theta}^0$​
-2. calculate the gradient $\bold{g} = \begin{bmatrix} \frac{\partial{L}}{\partial{\theta_1}}\bigg|_{\boldsymbol{\theta}=\boldsymbol{\theta}^0} \\ \frac{\partial{L}}{\partial{\theta_2}}\bigg|_{\boldsymbol{\theta}=\boldsymbol{\theta}^0} \\ \vdots \end{bmatrix} = \nabla L(\boldsymbol{\theta}^0)$ with $\boldsymbol{\theta}, \bold{g} \in \mathbb{R}^n$
-3. perform the update step: $\begin{bmatrix} \theta_1^1 \\ \theta_2^1 \\ \vdots \end{bmatrix} \leftarrow \begin{bmatrix} \theta_1^0 \\ \theta_2^0 \\ \vdots \end{bmatrix} - \begin{bmatrix} \eta \frac{\partial{L}}{\partial{\theta_1}}\bigg|_{\boldsymbol{\theta}=\boldsymbol{\theta}^0} \\ \eta \frac{\partial{L}}{\partial{\theta_2}}\bigg|_{\boldsymbol{\theta}=\boldsymbol{\theta}^0} \\ \vdots \end{bmatrix}$, namely $\boldsymbol{\theta}^1 \leftarrow \boldsymbol{\theta}^0 - \eta \bold{g}$
+2. calculate the gradient $\bold{g} = \begin{bmatrix} \frac{\partial{L}}{\partial{\theta_1}}\bigg|_{\boldsymbol{\theta}=\boldsymbol{\theta}^0} \\ \frac{\partial{L}}{\partial{\theta_2}}\bigg|_{\boldsymbol{\theta}=\boldsymbol{\theta}^0} \\ \vdots \end{bmatrix} = \nabla L(\boldsymbol{\theta}^0)$ with $\boldsymbol{\theta}, \boldsymbol{g} \in \mathbb{R}^n$
+3. perform the update step: $\begin{bmatrix} \theta_1^1 \\ \theta_2^1 \\ \vdots \end{bmatrix} \leftarrow \begin{bmatrix} \theta_1^0 \\ \theta_2^0 \\ \vdots \end{bmatrix} - \begin{bmatrix} \eta \frac{\partial{L}}{\partial{\theta_1}}\bigg|_{\boldsymbol{\theta}=\boldsymbol{\theta}^0} \\ \eta \frac{\partial{L}}{\partial{\theta_2}}\bigg|_{\boldsymbol{\theta}=\boldsymbol{\theta}^0} \\ \vdots \end{bmatrix}$, namely $\boldsymbol{\theta}^1 \leftarrow \boldsymbol{\theta}^0 - \eta \boldsymbol{g}$
 
+The terms ***batch*** and ***epoch*** are different.
 
+![image-20240503155656244](assets/image-20240503155656244.png)
+$$
+\text{num\_updates} = \frac{\text{num\_examples}}{\text{batch\_size}}
+$$
+Batch size $B$​ is also a hyperparameter. One epoch does not tell the number of updates the training process actually has.
 
+### RELU
 
+![image-20240503160800010](assets/image-20240503160800010.png)
 
+It looks kind of like the Hard Sigmoid function we saw earlier:
+
+![image-20240503161144168](assets/image-20240503161144168.png)
+
+As a result, we can use these two RELU curves to simulate the same result as Sigmoid curve.
+$$
+y = b + \sum_{2i} c_i \max(0, b_i + \sum_j w_{ij}x_j)
+$$
