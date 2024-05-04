@@ -187,7 +187,11 @@ Traing steps:
 1. write a function with unknown parameters, namely $y = f_{\boldsymbol{\theta}}(\boldsymbol{x})$​
 2. define loss from training data: $L(\boldsymbol{\theta})$
 3. optimization: $\boldsymbol{\theta}^* = \arg \min_{\boldsymbol{\theta}} L$​
-4. Use $y = f_{\boldsymbol{\theta}^*}(\boldsymbol{x})$ to label the testing data
+4. Use $y = f_{\boldsymbol{\theta}^*}(\boldsymbol{x})$​ to label the testing data
+
+### General Guide
+
+<img src="assets/image-20240504115031073.png" alt="image-20240504115031073" style="zoom: 25%;" />
 
 ### Potential issues during training
 
@@ -198,4 +202,156 @@ Model bias: the potential function set of our model does not even include the de
 Large loss doesn't always imply issues with model bias. There may be issues with *optimization*. That is, gradient descent does not always produce global minima. We may stuck at a local minima. In the language of function set, the set theoretically contain optimal function $f^*(\boldsymbol{x})$. However, we may never reach that.
 
 <img src="assets/image-20240503174333051.png" alt="image-20240503174333051" style="zoom: 33%;" />
+
+### Optimization issue
+
+- gain insights from comparison to identify whether the failure of the model is due to optimization issues, overfitting or model bias
+- start from shallower networks (or other models like SVM which is much easier to optimize)
+- if deeper networks do not contain smaller loss on *training* data,  then there is optimization issues (as seen from the graph below)
+
+<img src="assets/image-20240504100720536.png" alt="image-20240504100720536" style="zoom:25%;" />
+
+For example, here, the 5-layer should always do better or the same as the 4-layer network. This is clearly due to optimization problems.
+
+<img src="assets/image-20240504100948916.png" alt="image-20240504100948916" style="zoom:25%;" />
+
+### Overfitting
+
+Solutions:
+
+- more training data
+- data augumentation (in image recognition, it means flipping images or zooming in images)
+- use a more constrained model: 
+  - less parameters
+  - sharing parameters
+  - less features
+  - early stopping
+  - regularization
+  - dropout
+
+For example, CNN is a more constrained version of the fully-connected vanilla neural network.
+
+<img src="assets/image-20240504102902784.png" alt="image-20240504102902784" style="zoom:25%;" />
+
+### Bias-Complexity Trade-off
+
+<img src="assets/image-20240504104404308.png" alt="image-20240504104404308" style="zoom:25%;" />
+
+<img src="assets/image-20240504104623658.png" alt="image-20240504104623658" style="zoom:25%;" />
+
+### N-fold Cross Validation
+
+<img src="assets/image-20240504114823462.png" alt="image-20240504114823462" style="zoom:25%;" />
+
+### Mismatch
+
+Mismatch occurs when the training dataset and the testing dataset comes from different distributions. Mismatch can not be prevented by simply increasing the training dataset like we did to overfitting. More information on mismatch will be provided in Homework 11.
+
+## Preparation 2: 類神經網路訓練不起來怎麼辦 (一)： 局部最小值 (local minima) 與鞍點 (saddle point)
+
+### Optimization Failure
+
+<img src="assets/image-20240504115754108.png" alt="image-20240504115754108" style="zoom:25%;" />
+
+<img src="assets/image-20240504115906505.png" alt="image-20240504115906505" style="zoom:25%;" />
+
+Optimization fails not always because of we stuck at local minima. We may also encounter **saddle points**, which are not local minima but have a gradient of $0$. 
+
+All the points that have a gradient of $0$ are called **critical points**. So, we can't say that our gradient descent algorithms always stops because we stuck at local minima -- we may stuck at saddle points as well. The correct way to say is that gradient descent stops when we stuck at a critical point.
+
+If we are stuck at a local minima, then there's no way to further decrease the loss (all the points around local minima are higher); if we are stuck at a saddle point, we can escape the saddle point. But, how can we differentiate a saddle point and local minima?
+
+### Identify which kinds of Critical Points
+
+$L(\boldsymbol{\theta})$ around $\boldsymbol{\theta} = \boldsymbol{\theta}'$ can be approximated (Taylor Series)below:
+
+$$
+L(\boldsymbol{\theta}) \approx L(\boldsymbol{\theta}') + (\boldsymbol{\theta} - \boldsymbol{\theta}')^T \boldsymbol{g} + \frac{1}{2} (\boldsymbol{\theta} - \boldsymbol{\theta}')^T H (\boldsymbol{\theta} - \boldsymbol{\theta}')
+$$
+
+Gradient $\boldsymbol{g}$ is a *vector*:
+
+$$
+\boldsymbol{g} = \nabla L(\boldsymbol{\theta}')
+$$
+
+$$
+\boldsymbol{g}_i = \frac{\partial L(\boldsymbol{\theta}')}{\partial \boldsymbol{\theta}_i}
+$$
+
+Hessian $H$ is a matrix:
+
+$$
+H_{ij} = \frac{\partial^2}{\partial \boldsymbol{\theta}_i \partial \boldsymbol{\theta}_j} L(\boldsymbol{\theta}')
+$$
+
+<img src="assets/image-20240504121739774.png" alt="image-20240504121739774" style="zoom:25%;" />
+
+The green part is the Gradient and the red part is the Hessian.
+
+When we are at the critical point, The approximation is "dominated" by the Hessian term.
+
+<img src="assets/image-20240504122010303.png" alt="image-20240504122010303" style="zoom:25%;" />
+
+Namely, our approximation formula becomes:
+
+$$
+L(\boldsymbol{\theta}) \approx L(\boldsymbol{\theta}') + \frac{1}{2} (\boldsymbol{\theta} - \boldsymbol{\theta}')^T H (\boldsymbol{\theta} - \boldsymbol{\theta}') = L(\boldsymbol{\theta}') + \frac{1}{2} \boldsymbol{v}^T H \boldsymbol{v}
+$$
+
+Local minima: 
+
+- For all $\boldsymbol{v}$, if $\boldsymbol{v}^T H \boldsymbol{v} > 0$ ($H$ is positive definite, so all eigenvalues are positive), around $\boldsymbol{\theta}'$: $L(\boldsymbol{\theta}) > L(\boldsymbol{\theta}')$​
+
+Local maxima:
+
+- For all $\boldsymbol{v}$, if $\boldsymbol{v}^T H \boldsymbol{v} < 0$ ($H$ is negative definite, so all eigenvalues are negative), around $\boldsymbol{\theta}'$: $L(\boldsymbol{\theta}) < L(\boldsymbol{\theta}')$
+
+Saddle point:
+
+- Sometimes $\boldsymbol{v}^T H \boldsymbol{v} < 0$, sometimes $\boldsymbol{v}^T H \boldsymbol{v} > 0$. Namely, $H$​ is indefinite -- some eigenvalues are positive and some eigenvalues are negative.
+
+Example:
+
+<img src="assets/image-20240504130115656.png" alt="image-20240504130115656" style="zoom:25%;" />
+
+<img src="assets/image-20240504130345730.png" alt="image-20240504130345730" style="zoom:33%;" />
+
+### Escaping saddle point
+
+If by analyzing $H$'s properpty, we realize that it's indefinite (we are at a saddle point). We can also analyze $H$ to get a sense of the **parameter update direction**! 
+
+Suppose $\boldsymbol{u}$ is an eigenvector of $H$ and $\lambda$ is the eigenvalue of $\boldsymbol{u}$.
+
+$$
+\boldsymbol{u}^T H \boldsymbol{u} = \boldsymbol{u}^T (H \boldsymbol{u}) = \boldsymbol{u}^T (\lambda \boldsymbol{u}) = \lambda (\boldsymbol{u}^T \boldsymbol{u}) = \lambda \|\boldsymbol{u}\|^2
+$$
+
+If the eigenvalue $\lambda < 0$, then $\boldsymbol{u}^T H \boldsymbol{u} = \lambda \|\boldsymbol{u}\|^2 < 0$ (eigenvector $\boldsymbol{u}$ can't be $\boldsymbol{0}$). Because $L(\boldsymbol{\theta}) \approx L(\boldsymbol{\theta}') + \frac{1}{2} \boldsymbol{u}^T H \boldsymbol{u}$, we know $L(\boldsymbol{\theta}) < L(\boldsymbol{\theta}')$. By definition, $\boldsymbol{\theta} - \boldsymbol{\theta}' = \boldsymbol{u}$. If we perform $\boldsymbol{\theta} = \boldsymbol{\theta}' + \boldsymbol{u}$, we can effectively decrease $L$. We can escape the saddle point and decrease the loss.
+
+However, this method is seldom used in practice because of the huge computation need to compute the Hessian matrix and the eigenvectors/eigenvalues.
+
+### Local minima v.s. saddle point
+
+<img src="assets/image-20240504143925130.png" alt="image-20240504143925130" style="zoom:25%;" />
+
+A local minima in lower-dimensional space may be a saddle point in a higher-dimension space. Empirically, when we have lots of parameters, **local minima is very rare**. 
+
+<img src="assets/image-20240504144357680.png" alt="image-20240504144357680" style="zoom:25%;" />
+
+## Preparation 3: 類神經網路訓練不起來怎麼辦 (二)： 批次 (batch) 與動量 (momentum)
+
+### Small Batch v.s. Large Batch
+
+<img src="assets/image-20240504145118594.png" alt="image-20240504145118594" style="zoom:25%;" />
+
+<img src="assets/image-20240504145348568.png" alt="image-20240504145348568" style="zoom:25%;" />
+
+However, emprically, large batch size $B$​ does **not** require longer time to compute gradient because of GPU's parallel computing, unless the batch size is too big.
+
+<img src="assets/image-20240504145814623.png" alt="image-20240504145814623" style="zoom:25%;" />
+
+**Smaller** batch requires **longer** time for <u>one epoch</u> (longer time for seeing all data once).
+
+<img src="assets/image-20240504150139906.png" alt="image-20240504150139906" style="zoom:33%;" />
 
