@@ -347,11 +347,141 @@ A local minima in lower-dimensional space may be a saddle point in a higher-dime
 
 <img src="assets/image-20240504145348568.png" alt="image-20240504145348568" style="zoom:25%;" />
 
-However, emprically, large batch size $B$​ does **not** require longer time to compute gradient because of GPU's parallel computing, unless the batch size is too big.
+Note that here, "time for cooldown" does not always determine the time it takes to complete an epoch.
+
+Emprically, large batch size $B$​ does **not** require longer time to compute gradient because of GPU's parallel computing, unless the batch size is too big.
 
 <img src="assets/image-20240504145814623.png" alt="image-20240504145814623" style="zoom:25%;" />
 
 **Smaller** batch requires **longer** time for <u>one epoch</u> (longer time for seeing all data once).
 
 <img src="assets/image-20240504150139906.png" alt="image-20240504150139906" style="zoom:33%;" />
+
+However, large batches are not always better than small batches. That is, the noise brought by small batches lead to better performance (optimization). 
+
+<img src="assets/image-20240504152856857.png" alt="image-20240504152856857" style="zoom:33%;" />
+
+<img src="assets/image-20240504151712866.png" alt="image-20240504151712866" style="zoom: 33%;" />
+
+Small batch is also better on **testing** data (***overfitting***).
+
+![image-20240504154312760](assets/image-20240504154312760.png)
+
+This may be because that large batch is more likely to lead to us stucking at a **sharp minima**, which is not good for testing loss. Because of noises, small batch is more likely to help us escape sharp minima. Instead, at convergence, we will more likely end up in a **flat minima**.
+
+<img src="assets/image-20240504154631454.png" alt="image-20240504154631454" style="zoom: 25%;" />
+
+Batch size is another hyperparameter.
+
+<img src="assets/image-20240504154938533.png" alt="image-20240504154938533" style="zoom:25%;" />
+
+### Momentum
+
+Vanilla Gradient Descent:
+
+<img src="assets/image-20240504160206707.png" alt="image-20240504160206707" style="zoom:25%;" />
+
+Gradient Descent with Momentum:
+
+<img src="assets/image-20240504160436876.png" alt="image-20240504160436876" style="zoom: 25%;" />
+
+<img src="assets/image-20240504160549105.png" alt="image-20240504160549105" style="zoom:25%;" />
+
+### Concluding Remarks
+
+<img src="assets/image-20240504160755845.png" alt="image-20240504160755845" style="zoom:33%;" />
+
+## Preparation 4: 類神經網路訓練不起來怎麼辦 (三)：自動調整學習速率 (Learning Rate)
+
+### Problems with Gradient Descent
+
+The fact that training process is stuck does not always mean small gradient.
+
+<img src="assets/image-20240504161124291.png" alt="image-20240504161124291" style="zoom:33%;" />
+
+Training can be difficult even without critical points. Gradient descent can fail to send us to the global minima even under the circumstance of a **convex** error surface. You can't fix this problem by adjusting the learning rate $\eta$.
+
+<img src="assets/image-20240504161746667.png" alt="image-20240504161746667" style="zoom:33%;" />
+
+Learning rate can not be one-size-fits-all. **If we are at a place where the gradient is high (steep surface), we expect $\eta$ to be small so that we don't overstep; if we are at a place where the gradient is small (flat surface), we expect $\eta$ to be large so that we don't get stuck at one place.**
+
+<img src="assets/image-20240504162232403.png" alt="image-20240504162232403" style="zoom:25%;" />
+
+### Adagrad
+
+Formulation for one parameter:
+$$
+\boldsymbol{\theta}_i^{t+1} \leftarrow \boldsymbol{\theta}_i^{t} - \eta \boldsymbol{g}_i^t
+$$
+
+$$
+\boldsymbol{g}_i^t = \frac{\partial L}{\partial \boldsymbol{\theta}_i} \bigg |_{\boldsymbol{\theta} = \boldsymbol{\theta}^t}
+$$
+
+The new formulation becomes:
+$$
+\boldsymbol{\theta}_i^{t+1} \leftarrow \boldsymbol{\theta}_i^{t} - \frac{\eta}{\sigma_i^t} \boldsymbol{g}_i^t
+$$
+$\sigma_i^t$ is both parameter-dependent ($i$) and iteration-dependent ($t$). It is called **Root Mean Square**. It is used in **Adagrad** algorithm.
+$$
+\sigma_i^t = \sqrt{\frac{1}{t+1} \sum_{i=0}^t (\boldsymbol{g}_i^t)^2}
+$$
+<img src="assets/image-20240504212350040.png" alt="image-20240504212350040" style="zoom:25%;" />
+
+Why this formulation works?
+
+<img src="assets/image-20240504212744865.png" alt="image-20240504212744865" style="zoom:25%;" />
+
+### RMSProp
+
+However, this formulation still has some problems. We assumed that the gradient for one parameter will stay relatively the same. However, it's not always the case. For example, there may be places where the gradient becomes large and places where the gradient becomes small (as seen from the graph below). The reaction of this formulation to a new gradient change is very slow.
+
+<img src="assets/image-20240504213324493.png" alt="image-20240504213324493" style="zoom:25%;" />
+
+The new formulation is now:
+$$
+\sigma_i^t = \sqrt{\alpha(\sigma_i^{t-1})^2 + (1-\alpha)(\boldsymbol{g}_i^t)^2}
+$$
+$\alpha$ is a hyperparameter ($0 < \alpha < 1$). It controls how important the previously-calculated gradient is.
+
+<img src="assets/image-20240504214302296.png" alt="image-20240504214302296" style="zoom:25%;" />
+
+<img src="assets/image-20240504214445048.png" alt="image-20240504214445048" style="zoom:25%;" />
+
+### Adam
+
+The Adam optimizer is basically the combination of RMSProp and Momentum.
+
+![image-20240504214928718](assets/image-20240504214928718.png)
+
+### Learning Rate Scheduling
+
+This is the optimization process with Adagrad:
+
+<img src="assets/image-20240504215606600.png" alt="image-20240504215606600" style="zoom:33%;" />
+
+To prevent the osciallations at the final stage, we can use two methods:
+$$
+\boldsymbol{\theta}_i^{t+1} \leftarrow \boldsymbol{\theta}_i^{t} - \frac{\eta^t}{\sigma_i^t} \boldsymbol{g}_i^t
+$$
+
+#### Learning Rate Decay
+
+As the training goes, we are closer to the destination. So, we reduce the learning rate $\eta^t$​.
+
+<img src="assets/image-20240504220358590.png" alt="image-20240504220358590" style="zoom:25%;" />
+
+This improves the previous result:
+
+<img src="assets/image-20240504220244480.png" alt="image-20240504220244480" style="zoom:33%;" />
+
+#### Warm up
+
+<img src="assets/image-20240504220517645.png" alt="image-20240504220517645" style="zoom:25%;" />
+
+We first increase $\eta ^ t$ and then decrease it. This method is used in both the Residual Network and Transformer paper. At the beginning, the estimate of $\sigma_i^t$​​ has large variance. We can learn more about this method in the RAdam paper.
+
+### Summary
+
+<img src="assets/image-20240504222113767.png" alt="image-20240504222113767" style="zoom:25%;" />
 
