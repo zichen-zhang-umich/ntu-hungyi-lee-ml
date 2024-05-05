@@ -627,3 +627,178 @@ But the above generative model fails to give a high-accuracy result. Why? In tha
 Intuitively, the new covariance matrix is the sum of the original covariance matrices weighted by the frequencies of samples in each distribution.
 
 <img src="assets/image-20240505121610514.png" alt="image-20240505121610514" style="zoom: 33%;" />
+
+<img src="assets/image-20240505122313657.png" alt="image-20240505122313657" style="zoom: 25%;" />
+
+#### Three steps to a probability distribution model
+
+<img src="assets/image-20240505123718777.png" alt="image-20240505123718777" style="zoom: 25%;" />
+
+We can always use whatever distribution we like (we use Guassian in the previous example).
+
+If we assume all the dimensions are independent, then you are using **Naive Bayes Classifier**.
+$$
+P(\boldsymbol{x} \mid C_1) =
+P(\begin{bmatrix}x_1 \\ x_2 \\ \vdots \\ x_K \end{bmatrix} \mid C_1) =
+P(x_1 \mid C_1)P(x_2 \mid C_1) \dots P(x_K \mid C_1)
+$$
+Each $P(x_m \mid C_1)$ is now a 1-D Gaussian. For binary features, you may assume they are from Bernouli distributions. 
+
+But if the assumption does not hold, the Naive Bayes Classifier may have a very high bias.
+
+#### Posterior Probability
+
+$$
+\begin{align}
+P(C_1 | x) 
+&= \frac{P(x | C_1) P(C_1)}{P(x | C_1) P(C_1) + P(x | C_2) P(C_2)} \\ 
+&= \frac{1}{1 + \frac{P(x | C_2) P(C_2)}{P(x | C_1) P(C_1)}} \\
+&= \frac{1}{1 + \exp(-z)} \\ 
+&= \sigma(z) \\
+\end{align}
+$$
+
+$$
+\begin{align}
+z &= \ln \frac{P(x | C_1) P(C_1)}{P(x | C_2) P(C_2)} \\
+&= \ln \frac{P(x | C_1)}{P(x | C_2)} + \ln \frac{P(C_1)}{P(C_2)} \\
+&= \ln \frac{P(x | C_1)}{P(x | C_2)} + \ln \frac{\frac{N_1}{N_1+N_2}}{\frac{N_2}{N_1+N_2}} \\
+&= \ln \frac{P(x | C_1)}{P(x | C_2)} + \ln \frac{N_1}{N_2} \\
+\end{align}
+$$
+
+Furthermore:
+$$
+\begin{align}
+\ln \frac{P(x | C_1)}{P(x | C_2)}
+&= \ln \frac{\frac{1}{(2\pi)^{D/2} |\Sigma_1|^{1/2}} \exp\left\{-\frac{1}{2} (x - \mu^1)^T \Sigma_1^{-1} (x - \mu^1)\right\}}  {\frac{1}{(2\pi)^{D/2} |\Sigma_2|^{1/2}} \exp\left\{-\frac{1}{2} (x - \mu^2)^T \Sigma_2^{-1} (x - \mu^2)\right\}} \\
+&= \ln \frac{|\Sigma_2|^{1/2}}{|\Sigma_1|^{1/2}} \exp \left\{ -\frac{1}{2} [(x - \mu^1)^T \Sigma_1^{-1} (x - \mu^1)-\frac{1}{2} (x - \mu^2)^T \Sigma_2^{-1} (x - \mu^2)] \right\} \\
+&= \ln \frac{|\Sigma_2|^{1/2}}{|\Sigma_1|^{1/2}} - \frac{1}{2} \left[(x - \mu^1)^T \Sigma_1^{-1} (x - \mu^1) - (x - \mu^2)^T \Sigma_2^{-1} (x - \mu^2)\right]
+\end{align}
+$$
+Further simplification goes:
+
+<img src="assets/image-20240505132500740.png" alt="image-20240505132500740" style="zoom:33%;" />
+
+Since we assume the distributions share the covariance matrix, we can further simplify the formula:
+
+<img src="assets/image-20240505133107451.png" alt="image-20240505133107451" style="zoom:33%;" />
+$$
+P(C_1 \mid x) = \sigma(w^Tx + b)
+$$
+This is why the decision boundary is a linear line.
+
+In generative models, we estimate $N_1, N_2, \mu^1, \mu^2, \Sigma$, then we have $\boldsymbol{w}$ and $b$. How about directly find $\boldsymbol{w}$ and $b$​?
+
+### Logistic Regression
+
+We want to find $P_{w,b}(C_1 \mid x)$. If $P_{w,b}(C_1 \mid x) \geq 0.5$, output $C_1$. Otherwise, output $C_2$.
+$$
+P_{w,b}(C_1 \mid x) = \sigma(z) = \sigma(w \cdot x + b) 
+= \sigma(\sum_i w_ix_i + b)
+$$
+The function set is therefore (including all different $w$ and $b$):
+$$
+f_{w,b}(x) = P_{w,b}(C_1 \mid x)
+$$
+Given the training data $\{(x^1, C_1),(x^2, C_1),(x^3, C_2),\dots, (x^N, C_1)\}$, assume the data is generated based on $f_{w,b}(x) = P_{w,b}(C_1 \mid x)$. Given a set of $w$ and $b$, the probability of generating the data is:
+$$
+L(w,b) = f_{w,b}(x^1)f_{w,b}(x^2)\left(1-f_{w,b}(x^3)\right)...f_{w,b}(x^N)
+$$
+
+$$
+w^*,b^* = \arg \max_{w,b} L(w,b)
+$$
+
+We can write the formulation by introducing $\hat{y}^i$, where:
+$$
+\hat{y}^i = \begin{cases}
+1 & x^i \text{ belongs to } C_1 \\
+0 & x^i \text{ belongs to } C_2
+\end{cases}
+$$
+<img src="assets/image-20240505153535990.png" alt="image-20240505153535990" style="zoom:33%;" />
+
+<img src="assets/image-20240505153917703.png" alt="image-20240505153917703" style="zoom:33%;" />
+$$
+C(p,q) = - \sum_x p(x) \ln \left( q(x) \right)
+$$
+Therefore, minimizing $- \ln L(w,b)$ is actually minimizing the cross entropy between two distributions: the output of function $f_{w,b}$ and the target $\hat{y}^n$​​.
+$$
+L(f) = \sum_n C(f(x^n), \hat{y}^n)
+$$
+
+$$
+C(f(x^n), \hat{y}^n) = -[\hat{y}^n \ln f(x^n) + (1-\hat{y}^n) \ln \left(1-f(x^n)\right)]
+$$
+
+<img src="assets/image-20240505155715704.png" alt="image-20240505155715704" style="zoom:33%;" />
+
+<img src="assets/image-20240505155812019.png" alt="image-20240505155812019" style="zoom:33%;" />
+
+<img src="assets/image-20240505160902451.png" alt="image-20240505160902451" style="zoom:33%;" />
+
+Here, the larger the difference ($\hat{y}^n - f_{w,b}(x^n)$) is, the larger the update.
+
+Therefore, the update step for **logistic regression** is:
+$$
+w_i \leftarrow w_i - \eta \sum_n - \left(\hat{y}^n - f_{w,b}(x^n)\right)x_i^n
+$$
+This looks the same as the update step for linear regression. However, in logistic regression, $f_{w,b}, \hat{y}^n \in \{0,1\}$.
+
+Comparision of the two algorithms:
+
+<img src="assets/image-20240505161330795.png" alt="image-20240505161330795" style="zoom: 25%;" />
+
+Why using square error instead of cross entropy on logistic regression is a bad idea?
+
+<img src="assets/image-20240505163118191.png" alt="image-20240505163118191" style="zoom:25%;" />
+
+<img src="assets/image-20240505163307888.png" alt="image-20240505163307888" style="zoom:25%;" />
+
+In either case, this algorithm fails to produce effective optimization. A visualization of the loss functions for both cross entropy and square error is illustrated below:
+
+<img src="assets/image-20240505163520499.png" alt="image-20240505163520499" style="zoom:25%;" />
+
+### Discriminative v.s. Generative
+
+The logistic regression is an example of **discriminative** model, while the Gaussian posterior probability method is an example of **generative** model, through their function set is the same.
+
+<img src="assets/image-20240505170417654.png" alt="image-20240505170417654" style="zoom:25%;" />
+
+We will not obtain the same set of $w$ and $b$. The same model (function set) but different function is selected by the same training data. The discriminative model tends to have a better performance than the generative model.
+
+A toy example shows why the generative model tends to perform less well. We assume Naive Bayes here, namely $P(x \mid C_i) = P(x_1 \mid C_i)P(x_2 \mid C_i)$ if $x \in \mathbb{R}^2$. The result is counterintuitive -- we expect the testing data to be classified as Class 1 instead of Class 2.
+
+<img src="assets/image-20240505202709608.png" alt="image-20240505202709608" style="zoom:25%;" />
+
+<img src="assets/image-20240505211619095.png" alt="image-20240505211619095" style="zoom:25%;" />
+
+### Multiclass Classification
+
+<img src="assets/image-20240505213248614.png" alt="image-20240505213248614" style="zoom:33%;" />
+
+**Softmax** will further enhance the maximum $z$ input, expanding the difference between a large value and a small value. Softmax is an approximation of the posterior probability. If we assume the previous Gaussian generative model that share the same covariance matrix amongst distributions, we can derive the exact same Softmax formulation. We can also derive Softmax from maximum entropy (similar to logistic regression).
+
+<img src="assets/image-20240505213741874.png" alt="image-20240505213741874" style="zoom: 25%;" />
+
+Like the binary classification case earlier, the multiclass classification aims to maximize likelihood, which is the same as minimizing cross entropy.
+
+### Limitations of Logistic Regression
+
+<img src="assets/image-20240505220032474.png" alt="image-20240505220032474" style="zoom: 25%;" />
+
+Solution: **feature transformation**
+
+<img src="assets/image-20240505220341723.png" alt="image-20240505220341723" style="zoom:25%;" />
+
+However, it is *not* always easy to find a good transformation. We can **cascade logistic regression models**.
+
+<img src="assets/image-20240505220557595.png" alt="image-20240505220557595" style="zoom: 25%;" />
+
+<img src="assets/image-20240505220908418.png" alt="image-20240505220908418" style="zoom:25%;" />
+
+# 3/04 Lecture 3: Image as input
+
+## Preparation 1: 卷積神經網路 (Convolutional Neural Networks, CNN)
+
