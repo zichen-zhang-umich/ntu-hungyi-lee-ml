@@ -158,8 +158,6 @@ Batch size $B$​ is also a hyperparameter. One epoch does not tell the number o
 
 ### More activation functions: RELU
 
-<img src="assets/image-20240503160800010.png" alt="image-20240503160800010" style="zoom:25%;" />
-
 It looks kind of like the Hard Sigmoid function we saw earlier:
 
 <img src="assets/image-20240503161144168.png" alt="image-20240503161144168" style="zoom:25%;" />
@@ -410,6 +408,7 @@ Learning rate can not be one-size-fits-all. **If we are at a place where the gra
 ### Adagrad
 
 Formulation for one parameter:
+
 $$
 \boldsymbol{\theta}_i^{t+1} \leftarrow \boldsymbol{\theta}_i^{t} - \eta \boldsymbol{g}_i^t
 $$
@@ -419,10 +418,13 @@ $$
 $$
 
 The new formulation becomes:
+
 $$
 \boldsymbol{\theta}_i^{t+1} \leftarrow \boldsymbol{\theta}_i^{t} - \frac{\eta}{\sigma_i^t} \boldsymbol{g}_i^t
 $$
+
 $\sigma_i^t$ is both parameter-dependent ($i$) and iteration-dependent ($t$). It is called **Root Mean Square**. It is used in **Adagrad** algorithm.
+
 $$
 \sigma_i^t = \sqrt{\frac{1}{t+1} \sum_{i=0}^t (\boldsymbol{g}_i^t)^2}
 $$
@@ -439,6 +441,7 @@ However, this formulation still has some problems. We assumed that the gradient 
 <img src="assets/image-20240504213324493.png" alt="image-20240504213324493" style="zoom:25%;" />
 
 The new formulation is now:
+
 $$
 \sigma_i^t = \sqrt{\alpha(\sigma_i^{t-1})^2 + (1-\alpha)(\boldsymbol{g}_i^t)^2}
 $$
@@ -461,6 +464,7 @@ This is the optimization process with Adagrad:
 <img src="assets/image-20240504215606600.png" alt="image-20240504215606600" style="zoom:33%;" />
 
 To prevent the osciallations at the final stage, we can use two methods:
+
 $$
 \boldsymbol{\theta}_i^{t+1} \leftarrow \boldsymbol{\theta}_i^{t} - \frac{\eta^t}{\sigma_i^t} \boldsymbol{g}_i^t
 $$
@@ -485,3 +489,141 @@ We first increase $\eta ^ t$ and then decrease it. This method is used in both t
 
 <img src="assets/image-20240504222113767.png" alt="image-20240504222113767" style="zoom:25%;" />
 
+## Preparation 5: 類神經網路訓練不起來怎麼辦 (四)：損失函數 (Loss) 也可能有影響
+
+### How to represent classification
+
+We can't directly apply regression to classification problems because regression tends to penalize the examples that are "too correct." 
+
+<img src="assets/image-20240505103637180.png" alt="image-20240505103637180" style="zoom:25%;" />
+
+It's also problematic to directly represent Class 1 as numeric value $1$, Class 2 as $2$, Class 3 as $3$​. That is, this representation has an underlying assumption that Class 1 is "closer" or more "similar" to Class 2 than Class 3. However, this is not always the case.
+
+One possible model is:
+
+$$
+f(x) = \begin{cases} 
+1 & g(x) > 0 \\
+2 & \text{else}
+\end{cases} 
+$$
+
+The loss function denotes the number of times $f$ gets incorrect results on training data.
+
+$$
+L(f) = \sum_n \delta(f(x^n) \neq \hat{y}^n)
+$$
+
+We can represent classes as one-hot vectors. For example, we can represent Class $1$ as $\hat{y} = \begin{bmatrix}
+1 \\
+0 \\
+0
+\end{bmatrix}$, Class $2$ as $\hat{y} = \begin{bmatrix}
+0 \\
+1 \\
+0
+\end{bmatrix}$ and Class $3$ as $\hat{y} = \begin{bmatrix}
+0 \\
+0 \\
+1
+\end{bmatrix}$.
+
+<img src="assets/image-20240505084900542.png" alt="image-20240505084900542" style="zoom: 25%;" />
+
+### Softmax
+
+$$
+y_i' = \frac{\exp(y_i)}{\sum_j \exp(y_j)}
+$$
+
+We know that $0 < y_i' < 1$ and $\sum_i y_i' = 1$.
+
+<img src="assets/image-20240505085254461.png" alt="image-20240505085254461" style="zoom: 33%;" />
+
+<img src="assets/image-20240505085830849.png" alt="image-20240505085830849" style="zoom: 33%;" />
+
+### Loss of Classification
+
+#### Mean Squared Error (MSE)
+
+$$
+e = \sum_i (\boldsymbol{\hat{y}}_i - \boldsymbol{y}_i')^2
+$$
+
+#### Cross-Entropy
+
+$$
+e = -\sum_i \boldsymbol{\hat{y}}_i \ln{\boldsymbol{y}_i'}
+$$
+
+Minimizing cross-entropy is equivalent to maximizing likelihood. 
+
+Cross-entropy is more frequently used for classification than MSE. At the region with higher loss, the gradient of MSE is close to $0$. This is not good for gradient descent. 
+
+<img src="assets/image-20240505091600454.png" alt="image-20240505091600454" style="zoom:33%;" />
+
+### Generative Models
+
+<img src="assets/image-20240505110347099.png" alt="image-20240505110347099" style="zoom:25%;" />
+
+$$
+P(C_1 \mid x) 
+= \frac{P(C_1, x)}{P(x)} 
+= \frac{P(x \mid C_1)P(C_1)}{P(x \mid C_1)P(C_1) + P(x \mid C_2)P(C_2)}
+$$
+
+We can therefore predict the distribution of $x$:
+
+$$
+P(x) = P(x \mid C_1)P(C_1) + P(x \mid C_2)P(C_2)
+$$
+
+#### Prior
+
+$P(C_1)$ and $P(C_2)$ are called prior probabilities. 
+
+#### Gaussian distribution
+
+$$
+f_{\mu, \Sigma}(x) = \frac{1}{(2\pi)^{D/2} |\Sigma|^{1/2}} \exp\left(-\frac{1}{2} (x - \mu)^T \Sigma^{-1} (x - \mu)\right)
+$$
+
+Input: vector $x$, output: probability of sampling $x$. The shape of the function determines by mean $\mu$ and covariance matrix $\Sigma$. ==Technically, the output is the probability density, not exactly the probability, through they are positively correlated.==
+
+<img src="assets/image-20240505111630135.png" alt="image-20240505111630135" style="zoom:25%;" />
+
+<img src="assets/image-20240505111652217.png" alt="image-20240505111652217" style="zoom:25%;" />
+
+#### Maximum Likelihood
+
+We assume $x^1, x^2, x^3, \cdots, x^{79}$ generate from the Gaussian ($\mu^*, \Sigma^*$) with the *maximum likelihood*.
+
+$$
+L(\mu, \Sigma) = f_{\mu, \Sigma}(x^1) f_{\mu, \Sigma}(x^2) f_{\mu, \Sigma}(x^3) \cdots f_{\mu, \Sigma}(x^{79})
+$$
+
+$$
+\mu^*, \Sigma^* = \arg \max_{\mu,\Sigma} L(\mu, \Sigma)
+$$
+
+The solution is as follows:
+
+$$
+\mu^* = \frac{1}{79} \sum_{n=1}^{79} x^n
+$$
+
+$$
+\Sigma^* = \frac{1}{79} \sum_{n=1}^{79} (x^n - \mu^*)(x^n - \mu^*)^T
+$$
+
+<img src="assets/image-20240505115811655.png" alt="image-20240505115811655" style="zoom:25%;" />
+
+But the above generative model fails to give a high-accuracy result. Why? In that formulation, every class has its unique mean vector and covariance matrix. The size of the covariance matrix tends to increase as the feature size of the input increases. This increases the number of trainable parameters, which tends to result in overfitting. Therefore, we can force different distributions to **share the same covariance matrix**.
+
+<img src="assets/image-20240505120606165.png" alt="image-20240505120606165" style="zoom:25%;" />
+
+<img src="assets/image-20240505121134979.png" alt="image-20240505121134979" style="zoom:25%;" />
+
+Intuitively, the new covariance matrix is the sum of the original covariance matrices weighted by the frequencies of samples in each distribution.
+
+<img src="assets/image-20240505121610514.png" alt="image-20240505121610514" style="zoom: 33%;" />
