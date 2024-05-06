@@ -637,11 +637,13 @@ Intuitively, the new covariance matrix is the sum of the original covariance mat
 We can always use whatever distribution we like (we use Guassian in the previous example).
 
 If we assume all the dimensions are independent, then you are using **Naive Bayes Classifier**.
+
 $$
 P(\boldsymbol{x} \mid C_1) =
 P(\begin{bmatrix}x_1 \\ x_2 \\ \vdots \\ x_K \end{bmatrix} \mid C_1) =
 P(x_1 \mid C_1)P(x_2 \mid C_1) \dots P(x_K \mid C_1)
 $$
+
 Each $P(x_m \mid C_1)$ is now a 1-D Gaussian. For binary features, you may assume they are from Bernouli distributions. 
 
 But if the assumption does not hold, the Naive Bayes Classifier may have a very high bias.
@@ -668,6 +670,7 @@ z &= \ln \frac{P(x | C_1) P(C_1)}{P(x | C_2) P(C_2)} \\
 $$
 
 Furthermore:
+
 $$
 \begin{align}
 \ln \frac{P(x | C_1)}{P(x | C_2)}
@@ -676,6 +679,7 @@ $$
 &= \ln \frac{|\Sigma_2|^{1/2}}{|\Sigma_1|^{1/2}} - \frac{1}{2} \left[(x - \mu^1)^T \Sigma_1^{-1} (x - \mu^1) - (x - \mu^2)^T \Sigma_2^{-1} (x - \mu^2)\right]
 \end{align}
 $$
+
 Further simplification goes:
 
 <img src="assets/image-20240505132500740.png" alt="image-20240505132500740" style="zoom:33%;" />
@@ -683,9 +687,11 @@ Further simplification goes:
 Since we assume the distributions share the covariance matrix, we can further simplify the formula:
 
 <img src="assets/image-20240505133107451.png" alt="image-20240505133107451" style="zoom:33%;" />
+
 $$
 P(C_1 \mid x) = \sigma(w^Tx + b)
 $$
+
 This is why the decision boundary is a linear line.
 
 In generative models, we estimate $N_1, N_2, \mu^1, \mu^2, \Sigma$, then we have $\boldsymbol{w}$ and $b$. How about directly find $\boldsymbol{w}$ and $b$​?
@@ -693,15 +699,20 @@ In generative models, we estimate $N_1, N_2, \mu^1, \mu^2, \Sigma$, then we have
 ### Logistic Regression
 
 We want to find $P_{w,b}(C_1 \mid x)$. If $P_{w,b}(C_1 \mid x) \geq 0.5$, output $C_1$. Otherwise, output $C_2$.
+
 $$
 P_{w,b}(C_1 \mid x) = \sigma(z) = \sigma(w \cdot x + b) 
 = \sigma(\sum_i w_ix_i + b)
 $$
+
 The function set is therefore (including all different $w$ and $b$):
+
 $$
 f_{w,b}(x) = P_{w,b}(C_1 \mid x)
 $$
+
 Given the training data $\{(x^1, C_1),(x^2, C_1),(x^3, C_2),\dots, (x^N, C_1)\}$, assume the data is generated based on $f_{w,b}(x) = P_{w,b}(C_1 \mid x)$. Given a set of $w$ and $b$, the probability of generating the data is:
+
 $$
 L(w,b) = f_{w,b}(x^1)f_{w,b}(x^2)\left(1-f_{w,b}(x^3)\right)...f_{w,b}(x^N)
 $$
@@ -711,19 +722,24 @@ w^*,b^* = \arg \max_{w,b} L(w,b)
 $$
 
 We can write the formulation by introducing $\hat{y}^i$, where:
+
 $$
 \hat{y}^i = \begin{cases}
 1 & x^i \text{ belongs to } C_1 \\
 0 & x^i \text{ belongs to } C_2
 \end{cases}
 $$
+
 <img src="assets/image-20240505153535990.png" alt="image-20240505153535990" style="zoom:33%;" />
 
 <img src="assets/image-20240505153917703.png" alt="image-20240505153917703" style="zoom:33%;" />
+
 $$
 C(p,q) = - \sum_x p(x) \ln \left( q(x) \right)
 $$
+
 Therefore, minimizing $- \ln L(w,b)$ is actually minimizing the cross entropy between two distributions: the output of function $f_{w,b}$ and the target $\hat{y}^n$​​.
+
 $$
 L(f) = \sum_n C(f(x^n), \hat{y}^n)
 $$
@@ -741,9 +757,11 @@ $$
 Here, the larger the difference ($\hat{y}^n - f_{w,b}(x^n)$) is, the larger the update.
 
 Therefore, the update step for **logistic regression** is:
+
 $$
 w_i \leftarrow w_i - \eta \sum_n - \left(\hat{y}^n - f_{w,b}(x^n)\right)x_i^n
 $$
+
 This looks the same as the update step for linear regression. However, in logistic regression, $f_{w,b}, \hat{y}^n \in \{0,1\}$.
 
 Comparision of the two algorithms:
@@ -801,4 +819,116 @@ However, it is *not* always easy to find a good transformation. We can **cascade
 # 3/04 Lecture 3: Image as input
 
 ## Preparation 1: 卷積神經網路 (Convolutional Neural Networks, CNN)
+
+### CNN
+
+A neuron does not have to see the whole image. Every receptive field has a set of neurons (e.g. 64 neurons).
+
+<img src="assets/image-20240506100008130.png" alt="image-20240506100008130" style="zoom:25%;" />
+
+The same patterns appear in different regions. Every receptive field has the neurons with the same set of parameters.
+
+<img src="assets/image-20240506100525093.png" alt="image-20240506100525093" style="zoom:25%;" />
+
+<img src="assets/image-20240506101006793.png" alt="image-20240506101006793" style="zoom:25%;" />
+
+The convolutional layer produces a **feature map**.
+
+<img src="assets/image-20240506103951132.png" alt="image-20240506103951132" style="zoom:25%;" />
+
+<img src="assets/image-20240506104022627.png" alt="image-20240506104022627" style="zoom:25%;" />
+
+The feature map becomes a "new image." Each filter convolves over the input image.
+
+A filter of size 3x3 will not cause the problem of missing "large patterns." This is because that as we go deeper into the network, our filter will read broader information (as seen from the illustration below).
+
+<img src="assets/image-20240506104431235.png" alt="image-20240506104431235" style="zoom:25%;" />
+
+Subsampling the pixels will not change the object. Therefore, we always apply **Max Pooling** (or other methods) after convolution to reduce the computation cost.
+
+<img src="assets/image-20240506123931836.png" alt="image-20240506123931836" style="zoom:25%;" />
+
+<img src="assets/image-20240506123958219.png" alt="image-20240506123958219" style="zoom:25%;" />
+
+<img src="assets/image-20240506124013529.png" alt="image-20240506124013529" style="zoom:25%;" />
+
+### Limitations of CNN
+
+CNN is *not* invariant to **scaling and rotation** (we need **data augumentation**).
+
+# 3/11 Lecture 4: Sequence as input
+
+## Preparation 1: 自注意力機制 (Self-attention) (上)
+
+### Vector Set as Input
+
+We often use **word embedding** for sentences.
+
+<img src="assets/image-20240506131746897.png" alt="image-20240506131746897" style="zoom:25%;" />
+
+Audio can also be represented as a vector set. We often use a vector to represent a $25ms$-long audio.
+
+<img src="assets/image-20240506131950596.png" alt="image-20240506131950596" style="zoom:25%;" />
+
+Graph is also a set of vectors (consider each **node** as a *vector*).
+
+### Output
+
+Each vector has a label (e.g. POS tagging). This is also called **sequence labeling**.
+
+<img src="assets/image-20240506132918462.png" alt="image-20240506132918462" style="zoom:25%;" />
+
+The whole sequence has a label (e.g. sentiment analysis).
+
+<img src="assets/image-20240506132941134.png" alt="image-20240506132941134" style="zoom:25%;" />
+
+It is also possible that the model has to decide the number of labels itself (e.g. translation). This is also called **seq2seq**.
+
+<img src="assets/image-20240506133219680.png" alt="image-20240506133219680" style="zoom:25%;" />
+
+### Sequence Labeling
+
+<img src="assets/image-20240506142936680.png" alt="image-20240506142936680" style="zoom: 25%;" />
+
+The **self-attention** module will try to consider the whole sequence and find the relevant vectors within the sequence (based on the attention score $\alpha$ for each pair).
+
+<img src="assets/image-20240506143433074.png" alt="image-20240506143433074" style="zoom:25%;" />
+
+There are many ways to calculate $\alpha$:
+
+**Additive**:
+
+<img src="assets/image-20240506143747993.png" alt="image-20240506143747993" style="zoom:25%;" />
+
+**Dot-product**: (the most popular method)
+
+<img src="assets/image-20240506143624304.png" alt="image-20240506143624304" style="zoom:25%;" />
+
+<img src="assets/image-20240506144202322.png" alt="image-20240506144202322" style="zoom: 33%;" />
+
+The attention score will then pass through *softmax* (not necessary, RELU is also possible).
+
+$$
+\alpha_{1,i}' = \frac{\exp(\alpha_{1,i})}{\sum_j \exp(\alpha_{1,j})}
+$$
+
+<img src="assets/image-20240506144352946.png" alt="image-20240506144352946" style="zoom: 33%;" />
+
+We will then extract information based on attention scores (after applying softmax).
+
+$$
+\boldsymbol{b}^1 = \sum_i \alpha_{1,i}' \boldsymbol{v}^i
+$$
+
+<img src="assets/image-20240506144754754.png" alt="image-20240506144754754" style="zoom: 33%;" />
+
+If $\boldsymbol{a}^1$ is most similar to $\boldsymbol{a}^2$, then $\alpha_{1,2}'$ will be the highest. Therefore, $\boldsymbol{b}^1$ will be dominated by $\boldsymbol{a}^2$.
+
+## Preparation 2: 自注意力機制 (Self-attention) (下)
+
+### Review
+
+The creation of $\boldsymbol{b}^n$ is in parallel. We don't wait.
+
+<img src="assets/image-20240506145502633.png" alt="image-20240506145502633" style="zoom:25%;" />
 
