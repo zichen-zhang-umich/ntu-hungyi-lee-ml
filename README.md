@@ -1189,3 +1189,91 @@ The GNN can also learn different angles of face. For example, when we apply **in
 
 ## Preparation 2: Theory Behind GAN
 
+<img src="assets/image-20240507183702031.png" alt="image-20240507183702031" style="zoom:30%;" />
+
+$$
+G^* = \arg \min_G Div(P_G, P_{\text{data}})
+$$
+
+where $Div(P_G, P_{\text{data}})$, our "loss function," is the **divergence** between two distributions: $P_G$ and $P_{\text{data}}$.
+
+The hardest part of GNN training is how to formulate the divergence. But, sampling is good enough. Although we do not know the distributions of $P_G$ and $P_{\text{data}}$, we can sample from them.
+
+<img src="assets/image-20240507185732875.png" alt="image-20240507185732875" style="zoom:25%;" />
+
+For discriminator, 
+
+<img src="assets/image-20240507190414858.png" alt="image-20240507190414858" style="zoom:33%;" />
+
+$$
+D^* = \arg \max_D V(D,G)
+$$
+
+$$
+V(G, D) = \mathbb{E}_{y \sim P_{\text{data}}} [\log D(y)] + \mathbb{E}_{y \sim P_G} [\log (1 - D(y))]
+$$
+
+Since we want to maximize $V(G,D)$​, we in turn wants the discriminator output for true data to be as large as possible and the discriminator output for generated output to be as small as possible.
+
+Recall that cross-entropy $e = -\sum_i \boldsymbol{\hat{y}}_i \ln{\boldsymbol{y}_i'}$. <u>We can see that $V(G,D)$ looks a lot like **negative cross entropy** $-e = \sum_i \boldsymbol{\hat{y}}_i \ln{\boldsymbol{y}_i'}$.</u>
+
+Since we often minimize cross-entropy, we can find similarities here as well: $\min e = \max -e = \max V(G,D)$​. As a result, when we do the above optimization on a discriminator, we are actually training a *classifier* (with cross-entropy loss). That is, we can **view a discriminator as a classifier** that tries to seperate the true data and the generated data.
+
+In additon, $\max_D V(D,G)$ is also related to **JS divergence** (proof is in the original GAN paper):
+
+<img src="assets/image-20240507191902403.png" alt="image-20240507191902403" style="zoom:33%;" />
+
+Therefore,
+
+$$
+\begin{align}
+G^* &= \arg \min_G Div(P_G, P_{\text{data}}) \\
+&= \arg \min_G \max_D V(D,G)
+\end{align}
+$$
+
+This is how the GAN algorithm was designed (to solve the optimization problem above).
+
+GAN is known for its difficulty to be trained. 
+
+**In most cases, $P_G$ and $P_{\text{data}}$ are not overlapped.** 
+
+- The nature of the data is that both $P_G$ and $P_{\text{data}}$​ are **low-dimensional manifold in a high-dimensional space**. That is, most pictures in the high-dimensional space are not pictures, let alone human faces. So, any overlap can be ignored.
+
+- Even when $P_G$ and $P_{\text{data}}$ have overlap, the discriminator could still divide them if we don't have enough sampling.
+
+  <img src="assets/image-20240507201344462.png" alt="image-20240507201344462" style="zoom:25%;" />
+
+The problem with JS divergence is that JS divergence always outputs $\log2$ if two distributions do not overlap.
+
+<img src="assets/image-20240507201618857.png" alt="image-20240507201618857" style="zoom:25%;" />
+
+In addition, **when two classifiers don't overlap, binary classifiers can always achieve $100\%$ accuracy**. Everytime we finish discriminator training, the accuracy is $100\%$. We had hoped that after iterations, the discriminator will struggle more with classifying true data from generated data. However, it's not the case -- our discriminator can always achieve $100\%$ accuracy.
+
+The accuracy (or loss) means nothing during GAN training.
+
+#### WGAN
+
+<img src="assets/image-20240507203904606.png" alt="image-20240507203904606" style="zoom:25%;" />
+
+Considering one distribution P as a pile of earth, and another distribution Q as the target, the **Wasserstein Distance** is the average distance the earth mover has to move the earth. In the case above, distribution $P$ is concentrated on one point. Therefore, the distance is just $d$​.
+
+However, when we consider two distributions, the distance can be difficult to calculate.
+
+<img src="assets/image-20240507204341296.png" alt="image-20240507204341296" style="zoom:28%;" />
+
+Since there are many possible "moving plans," we use the “moving plan” with the **smallest** average distance to define the Wasserstein distance.
+
+$W$ is a better metric than $JS$ since it can better capture the divergence of two distributions with no overlap.
+
+<img src="assets/image-20240507204742569.png" alt="image-20240507204742569" style="zoom:25%;" />
+
+$$
+W(P_{\text{data}}, P_G) = \max_{D \in \text{1-Lipschitz}} \left\{ \mathbb{E}_{y \sim P_{\text{data}}} [D(y)] - \mathbb{E}_{y \sim P_{G}} [D(y)] \right\}
+$$
+
+$D \in \text{1-Lipschitz}$ means that $D(x)$ has to be a smooth enough function. Having this constraint prevents $D(x)$ from becoming $\infty$ and $-\infty$.
+
+<img src="assets/image-20240507222633511.png" alt="image-20240507222633511" style="zoom:33%;" />
+
+When the two distributions are very close, the two extremes can't be too far apart. This causes $W(P_{\text{data}}, P_G)$ to become relatively small. When the two distributions are very far, the two extremes can be rather far apart, making $W(P_{\text{data}}, P_G)$ relatively large.
