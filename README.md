@@ -816,6 +816,59 @@ However, it is *not* always easy to find a good transformation. We can **cascade
 
 <img src="assets/image-20240505220908418.png" alt="image-20240505220908418" style="zoom:25%;" />
 
+## Preparation 6: Batch Normalization
+
+<img src="assets/image-20240508173240007.png" alt="image-20240508173240007" style="zoom:33%;" />
+
+In a linear model, when the value at each dimension have very distinct values, we may witness an error surface that is steep in one dimension and smooth in the other, as seen from the left graph below. If we can restrict the value at each dimension to be of the same range, we can make the error surface more "trainable," as seen from the right graph below.
+
+<img src="assets/image-20240509091139135.png" alt="image-20240509091139135" style="zoom:30%;" />
+
+#### Feature Normalization
+
+Recall **standardization**:
+$$
+\boldsymbol{\tilde{x}}^{r}_{i} \leftarrow \frac{\boldsymbol{x}^{r}_{i} - m_{i}}{\sigma_{i}}
+$$
+$i$ represents the dimension of the vector $\boldsymbol{x}$ and $r$ represents the index of the datapoint.
+
+<img src="assets/image-20240509092317165.png" alt="image-20240509092317165" style="zoom:25%;" />
+
+For the *Sigmoid* activation function, we can apply feature normalization on $\boldsymbol{z}$ (before Sigmoid) so that all the values are concentrated close to $0$. But in other cases, it's acceptable to apply feature normalization on either $\boldsymbol{z}$ or $\boldsymbol{a}$.
+
+<img src="assets/image-20240509094310111.png" alt="image-20240509094310111" style="zoom:33%;" />
+
+When doing feature normalization, we can use element-wise operation on $\boldsymbol{z}$.
+
+<img src="assets/image-20240509094746248.png" alt="image-20240509094746248" style="zoom:29%;" />
+
+#### Batch Normalization Training
+
+Notice that now **if $\boldsymbol{z}^1$ changes, $\boldsymbol{\mu}, \boldsymbol{\sigma}, \boldsymbol{\tilde{z}}^1, \boldsymbol{\tilde{z}}^2, \boldsymbol{\tilde{z}}^3$​ will all change**. That is, the network is now considering all the inputs and output a bunch of outputs. This could be slow and memory-intensive because we need to load the entire dataset. So, we consider batches -- *Batch Normalization*.
+
+<img src="assets/image-20240509100535438.png" alt="image-20240509100535438" style="zoom:33%;" />
+
+We can also make a small improvement:
+
+<img src="assets/image-20240509101408124.png" alt="image-20240509101408124" style="zoom:33%;" />
+$$
+\boldsymbol{\hat{z}}^{i} = \boldsymbol{\gamma} \odot \boldsymbol{\tilde{z}}^{i} + \boldsymbol{\beta}
+$$
+We set $\boldsymbol{\gamma}$ to $[1,1,...]^T$ and $\boldsymbol{\beta}$ to $[0,0,...]^T$​ at the start of the iteration (they are *parameters* of the network). This means that the range will still the the same amongst different dimensions in the beginning. As the training goes, we may want to lift the contraint that each dimension has a mean of 0.
+
+#### Batch Normalization Testing/Inference
+
+<img src="assets/image-20240509102533136.png" alt="image-20240509102533136" style="zoom:33%;" />
+
+We do not always have batch at testing stage. 
+
+Computing the moving average of $\boldsymbol{\mu}$ and $\boldsymbol{\sigma}$​ of the batches during training (PyTorch has an implementation of this). The hyperparamteer $p$ is usually $0.1$.
+$$
+\boldsymbol{\bar{\mu}} \leftarrow 
+p \boldsymbol{\bar{\mu}} + (1-p) \boldsymbol{\mu^t}
+$$
+
+
 # 3/04 Lecture 3: Image as input
 
 ## Preparation 1: CNN
@@ -1017,6 +1070,153 @@ Self-attention is a more complex version of RNN. RNN can be bi-directional, so i
 
 This is one type of GNN.
 
+## Extra Material: RNN
+
+How to represent a word?
+
+### 1-of-N Encoding
+
+The vector is lexicon size. Each dimension corresponds to a word in the lexicon. The dimension for the word is 1, and others are 0. For example, lexicon = {apple, bag, cat, dog, elephant}. Then, apple = [1 0 0 0 0].
+
+<img src="assets/image-20240509112046739.png" alt="image-20240509112046739" style="zoom:25%;" />
+
+### RNN architecture
+
+<img src="assets/image-20240509112132338.png" alt="image-20240509112132338" style="zoom:25%;" />
+
+The memory units must have an initial value. **Changing the order of the sequence will change the output**.
+
+<img src="assets/image-20240509112231949.png" alt="image-20240509112231949" style="zoom:25%;" />
+
+**The same network is used again and again**. If the words before a particular word is different, then the values stored in the memory will be different, therefore causing the probability (i.e. output) of the same word different.
+
+We can also make the RNN deeper:
+
+<img src="assets/image-20240509121949403.png" alt="image-20240509121949403" style="zoom:25%;" />
+
+### Elman & Jordan Network
+
+<img src="assets/image-20240509122024968.png" alt="image-20240509122024968" style="zoom:25%;" />
+
+Jordan Network tends to have a *better* performance because we can know what exactly is in the memory unit (the output itself).
+
+### Bidirectional RNN
+
+<img src="assets/image-20240509122605942.png" alt="image-20240509122605942" style="zoom:33%;" />
+
+We can also train two networks at once. This way, the network can consider the entire input sequence.
+
+### Long Short-Term Memory (LSTM)
+
+<img src="assets/image-20240509123050221.png" alt="image-20240509123050221" style="zoom:33%;" />
+
+$4$ inputs: input, signal to Input Gate, signal to Output Gate, signal to Forget Gate
+
+Why LSTM? The RNN will wipe out memory in every new timestamp, therefore having a really short short-term memory. However, the LSTM can hold on to the memory as long as the Forget Gate $f(z_f)$ is $1$​.
+
+This is the structure of a **LSTM cell/neuron**:
+
+<img src="assets/image-20240509124021283.png" alt="image-20240509124021283" style="zoom:40%;" />
+
+When $f(z_f)=1$, memory $c$ is completely remembered; when $f(z_f)=0$, memory $c$ is completely forgotten (since $c \cdot f(z_f)=0$​).
+
+When $f(z_i)=1$, input $g(z)$ is completely passed through; when $f(z_i)=0$, $g(z)$ is blocked.
+
+Same story for $f(z_o)$.
+
+### Multi-Layer LSTM
+
+A LSTM neuron has **four** times more parameters than a vanilla neural network neuron. In vanilla neural network, every neuron is a function mapping a input vector to a output scalar. In LSTM, the neuron maps $4$ inputs to $1$ output.
+
+<img src="assets/image-20240509131055385.png" alt="image-20240509131055385" style="zoom:38%;" />
+
+Assume the total number of cells is $n$.
+
+<img src="assets/image-20240509131711965.png" alt="image-20240509131711965" style="zoom:40%;" />
+
+We will apply $4$ linear transformations to get $\boldsymbol{z^f, z^i, z, z^o}$. Each of them represents a type of input to the LSTM neuron. Each of them is a vector in $\mathbb{R}^n$. The $i$-th entry is the input to the $i$​​​-th neuron.
+
+We can use element-wise operations on those vectors to conduct these operations for all $n$ cells at the same time. In addition, the $z$ inputs are based on not only the current input $\boldsymbol{x^t}$, but also the memory cell $\boldsymbol{c^{t-1}}$ and the previous output $\boldsymbol{h^{t-1}}$.
+
+<img src="assets/image-20240509134617159.png" alt="image-20240509134617159" style="zoom:40%;" />
+
+### RNN Training
+
+RNN training relies on Backpropagation Through Time (BPTT), a variant of backpropagation. RNN-based network is not always easy to learn.
+
+<img src="assets/image-20240509141000994.png" alt="image-20240509141000994" style="zoom:33%;" />
+
+This is why it is difficult to train RNN. When we are at the flat plane, we often have a large learning rate. If we happen to step on the edge of the steep cliff, we may jump really far (because of the high learning rate and high gradient). This may cause optimization failure and segmentation fault.
+
+This can be solved using **Clipping**. We can set a maximum threshold for the gradient, so that it does not become really high.
+
+<img src="assets/image-20240509141022472.png" alt="image-20240509141022472" style="zoom:33%;" />
+
+Why do we observe this kind of behavior for RNN's error surface?
+
+<img src="assets/image-20240509144606662.png" alt="image-20240509144606662" style="zoom:33%;" />
+
+We can notice that the same weight $w$ is applied many times in different time. This causes the problem because any change in $w$ will either has not effect on the final output $y^N$ or a huge impact.
+
+One solution is LSTM. It can deal with **gradient vanishing**, but not **gradient explode**. As a result, most points on LSTM error surface with have a high gradient. When training LSTM, we can thus set the learning rate a relatively small value.
+
+Why LSTM solves gradient vanishing? Memory and input are added. **The influence never disappears unless Forget Gate is closed**. 
+
+An alternative option is Gated Recurrent Unit (GRU). It is simpler than LSTM. It only has 2 gates: combining the Forget Gate and the Input Gate.
+
+### More Applications
+
+RNN can also be applied on **many-to-one** tasks (input is a vector sequence, but output is only one output), such as sentiment analysis. We can set the output of RNN at the last timestamp as our final output.
+
+RNN can be used on many-to-many tasks (both input and output are vector sequences, but the output is shorter). For example, when doing speech recognition task, we can use **Connectionist Temporal Classification (CTC)**.
+
+<img src="assets/image-20240509153641320.png" alt="image-20240509153641320" style="zoom: 25%;" />
+
+RNN can also be applied on sequence-to-sequence learning (both input and output are both sequences with different lengths), such as machine translation.
+
+<img src="assets/image-20240509154402105.png" alt="image-20240509154402105" style="zoom: 25%;" />
+
+## Extra Material: GNN
+
+How do we utilize the structures and relationship to help train our model?
+
+### Spatial-Based Convolution
+
+<img src="assets/image-20240509170309414.png" alt="image-20240509170309414" style="zoom:33%;" />
+
+- **Aggregation**: use neighbor features to update hidden states in the next layer
+- **Readout**: use features of all the nodes to represent the whole graph $h_G$​
+
+#### NN4G (Neural Network for Graph)
+
+<img src="assets/image-20240509170939928.png" alt="image-20240509170939928" style="zoom:35%;" />
+$$
+h_3^0 = \boldsymbol{w}_0 \cdot \boldsymbol{x}_3
+$$
+
+$$
+h_3^1 = \hat{w}_{1,3}(h_0^0 + h_2^0 + h_4^0) + \boldsymbol{w}_1 \cdot \boldsymbol{x}_3
+$$
+
+<img src="assets/image-20240509171000501.png" alt="image-20240509171000501" style="zoom:35%;" />
+
+#### DCNN (Diffusion-Convolution Neural Network)
+
+<img src="assets/image-20240509174350496.png" alt="image-20240509174350496" style="zoom:33%;" />
+$$
+h_3^0 = w_3^0 MEAN(d(3,\cdot)=1)
+$$
+
+$$
+h_3^1 = w_3^1 MEAN(d(3,\cdot)=2)
+$$
+
+Node features:
+
+<img src="assets/image-20240509174728965.png" alt="image-20240509174728965" style="zoom:33%;" />
+
+
+
 # 3/18 Lecture 5: Sequence to sequence
 
 ## Preparation 1 & 2: Transformer
@@ -1053,7 +1253,7 @@ The Transformer architecture looks like this:
 
 <img src="assets/image-20240506224349208.png" alt="image-20240506224349208" style="zoom:33%;" />
 
-Residual connection is a very popular technique in deep learning: $\text{output}_{\text{final}} = \text{output} + \text{input}$
+**Residual connection** is a very popular technique in deep learning: $\text{output}_{\text{final}} = \text{output} + \text{input}$
 
 <img src="assets/image-20240506225128224.png" alt="image-20240506225128224" style="zoom:33%;" />
 
@@ -1276,4 +1476,208 @@ $D \in \text{1-Lipschitz}$ means that $D(x)$ has to be a smooth enough function.
 
 <img src="assets/image-20240507222633511.png" alt="image-20240507222633511" style="zoom:33%;" />
 
-When the two distributions are very close, the two extremes can't be too far apart. This causes $W(P_{\text{data}}, P_G)$ to become relatively small. When the two distributions are very far, the two extremes can be rather far apart, making $W(P_{\text{data}}, P_G)$ relatively large.
+When the two distributions are very close, the two extremes can't be too far apart. This causes $W(P_{\text{data}}, P_G)$ to become relatively small. When the two distributions are very far, the two extremes can be rather far apart, making $W(P_{\text{data}}, P_G)$​​ relatively large.
+
+## Preparation 3: Generator Performance and Conditional Generation
+
+<img src="assets/image-20240508084957535.png" alt="image-20240508084957535" style="zoom:25%;" />
+
+GAN is still challenging because if either generator or decoder fails to imrpove, the other will fail.
+
+More tips on how to train GAN:
+
+<img src="assets/image-20240508085939200.png" alt="image-20240508085939200" style="zoom:25%;" />
+
+### Sequence Generation GAN
+
+GAN can also be applied on *sequence generation*:
+
+In this case, the seq2seq model becomes our generator. However, this can be very hard to train. Since a tiny change in the parameter of generator will likely not affect the output of the generator (since the output is the most likely one), the score stays unchanged.
+
+<img src="assets/image-20240508090236679.png" alt="image-20240508090236679" style="zoom:33%;" />
+
+As a result, you can not use gradient descent on this. Therefore, we usually apply RL on Sequence Generation GAN.
+
+Usually, the generator are fine-tuned from a model learned by other approaches. However, with enough hyperparameter-tuning and tips, **ScarchGAN** can train from scratch. 
+
+There are also other types of generative models: VAE and Flow-Based Model.
+
+### Supervised Learning on GAN
+
+There are some other possible solutions. We can assign a vector to every image in the training set. We can then train the model using the vector and image pair.
+
+<img src="assets/image-20240508091644143.png" alt="image-20240508091644143" style="zoom:25%;" />
+
+### Evaluation of Generation
+
+Early in the start of GAN, we rely on human evaluation to judge the performance of generation. However, human evaluation is expensive (and sometimes unfair/unstable). How to evaluate the quality of the generated images automatically? 
+
+We can use an image classifer to solve this problem:
+
+<img src="assets/image-20240508092339349.png" alt="image-20240508092339349" style="zoom:33%;" />
+
+If the generated image is not like a real image, the classifer will have a more evenly spread distribution.
+
+#### Mode Collapse
+
+However, the generator could still be subject to a problem called **Mode Collapse** (a diversity problem). After generating more and more images, you could observe that the generated images look mostly the same.
+
+<img src="assets/image-20240508100403689.png" alt="image-20240508100403689" style="zoom:33%;" />
+
+This could be because the generator can learn from the discriminator's weakness and focus on that particular weakness.
+
+#### Mode Dropping
+
+<img src="assets/image-20240508101011624.png" alt="image-20240508101011624" style="zoom:33%;" />
+
+**Mode Dropping** is more difficult to be detected. The distribution of generated data is diverse but it's still a portion of the real distribution.
+
+#### Inception Score (IS)
+
+Good quality and large diversity will produce a larger IS.
+
+<img src="assets/image-20240508101614367.png" alt="image-20240508101614367" style="zoom: 33%;" />
+
+<img src="assets/image-20240508101641023.png" alt="image-20240508101641023" style="zoom:33%;" />
+
+#### Fréchet Inception Distance (FID)
+
+<img src="assets/image-20240508102617665.png" alt="image-20240508102617665" style="zoom: 33%;" />
+
+All the points are the direct results (before being passed into softmax) produced by CNN. We also feed real images into the CNN to produce the red points. We assume both blue and red points come from *Gaussian* distributions. This may sometimes be problematic. In addition, to accurately obtain the distributions, we may need a lot of samples, which may lead to a huge computation cost. 
+
+However, we don't want a "memory GAN." If the GAN just outputs the samples (or alter them a tiny amount, like flipping), it may actually obtain a very low FID score. However, this is not what we want.
+
+### Conditional Generation
+
+Condition generation is useful for text-to-image tasks.
+
+<img src="assets/image-20240508105411552.png" alt="image-20240508105411552" style="zoom:33%;" />
+
+The discriminator will look at two things:
+
+- is output image $y$ realistic or not
+- are text input $x$ and $y$ matched or not
+
+<img src="assets/image-20240508121623002.png" alt="image-20240508121623002" style="zoom:33%;" />
+
+It's important that we add a good image which does not match the text input as our training data.
+
+It's also common to apply Conditional GAN on **image translation**, i.e. **pix2pix**.
+
+<img src="assets/image-20240508122011547.png" alt="image-20240508122011547" style="zoom:33%;" />
+
+We can technically use either supervised learning or GAN to design the model. However, in terms of supervised learning, since there're many correct outputs for a given input, the model may try to fit to all of them. The best output is when we use both GAN and supervised learning.
+
+<img src="assets/image-20240508122344067.png" alt="image-20240508122344067" style="zoom:30%;" />
+
+Conditional GAN can also be applied on sound-to-image generation.
+
+## Preparation 4: Cycle GAN
+
+GAN can also be applied on unsupervised learning. In some cases like **Image Style Transfer**, we may not be able to obtain any paired data. We could still learn mapping from unpaired data using **Unsupervised Conditional Generation**.
+
+<img src="assets/image-20240508165308900.png" alt="image-20240508165308900" style="zoom:25%;" />
+
+Instead of sampling from a Gaussian distribution like vanilla GAN, we sample from a particular domain $\mathcal{X}$. In this case, the domain is human profiles.
+
+<img src="assets/image-20240508165636665.png" alt="image-20240508165636665" style="zoom:33%;" />
+
+However, the model may try to ignore the input because as long as it generates something from domain $\mathcal{Y}$, it can pass the discriminator check. We can use the **Cycle GAN** architecture: training two generators at once. In this way, $G_{\mathcal{X} \rightarrow \mathcal{Y}}$ has to generate something related to the "input", so that $G_{\mathcal{Y} \rightarrow \mathcal{X}}$ can reconstruct the image.
+
+<img src="assets/image-20240508170522970.png" alt="image-20240508170522970" style="zoom:33%;" />
+
+In theory, the two generators may learn some strange mappings that prevent the model from actually output a related image. However, in practice, even with vanilla GAN, image style transfer can be learned by the model (the model prefers simple mapping, i.e. output something that looks like the input image).
+
+Cycle GAN can also be in both ways:
+
+<img src="assets/image-20240508171406589.png" alt="image-20240508171406589" style="zoom:33%;" />
+
+It can also be applied on **text-style transfer**. This idea is also applied on Unsupervised Abstractive Summarization, Unsupervised Translation, Unsupervised ASR.
+
+# 4/01 Recent Advance of Self-supervised learning for NLP
+
+## Self-supervised Learning
+
+Self-supervised learning is a form of unsupervised learning.
+
+### Masking Input
+
+<img src="assets/image-20240509183930967.png" alt="image-20240509183930967" style="zoom:30%;" />
+
+BERT is a transformer encoder, outputing a sequence of the same length as the input sequence.
+
+We randomly mask some tokens with either a special token or some random tokens. We then aim to train the model to minimize the cross entropy between the output and the ground truth. During training, we aim to update parameters of both the BERT and the linear model.
+
+### Next Sentence Prediction
+
+<img src="assets/image-20240509184440678.png" alt="image-20240509184440678" style="zoom:30%;" />
+
+This task tries to train the model to output a "yes" for thinking that sentence 2 does follow sentence 1 and a "no" for thinking that sentence 2 does not follow sentence 1. However, this approach is not very useful probably because this task is relatively easy and the model does not learn very much. An alternative way is to use **SOP**, which trains the model to learn whether sentence 1 is before sentence 2 or after sentence 2.
+
+### Fine-tuning
+
+With self-supervised learning, we **pre-train** the model, which prepares the model for **downstream tasks** (tasks we care and tasks that we've prepared a little bit labeled data). We can then **fine-tune** the model for different tasks.
+
+With a combination of unlabelled and labelled dataset, this training is called **semi-supervised learning**.
+
+#### GLUE
+
+GLUE has $9$ tasks. We fine-tune $9$ models based on the fine-tuned BERT, each for one task below, and then evaluate the model's performance.
+
+<img src="assets/image-20240509190900208.png" alt="image-20240509190900208" style="zoom:25%;" />
+
+#### Sequence to Class
+
+Example: sentiment analysis
+
+<img src="assets/image-20240509191651068.png" alt="image-20240509191651068" style="zoom:30%;" />
+
+Note that here, we only randomly initialize the parameters in the linear model, instead of BERT. Also, it's important that we train the model with labelled dataset.
+
+Fining tuning the model can accelerate the optimization process and improve the performance (lower the loss), as shown in the graph below.
+
+<img src="assets/image-20240509191956464.png" alt="image-20240509191956464" style="zoom:33%;" />
+
+#### Sequence to Sequence (Same Length)
+
+Example: POS tagging
+
+<img src="assets/image-20240509193758857.png" alt="image-20240509193758857" style="zoom:30%;" />
+
+#### Two Sequences to Class
+
+<img src="assets/image-20240509211910633.png" alt="image-20240509211910633" style="zoom:30%;" />
+
+Example: **Natural Language Inference (NLI)**
+
+<img src="assets/image-20240509212007348.png" alt="image-20240509212007348" style="zoom:30%;" />
+
+#### Extraction-Based Question Answering (QA)
+
+<img src="assets/image-20240509212306860.png" alt="image-20240509212306860" style="zoom:32%;" />
+
+In this case, as usual, both $D$ and $Q$ are sequences of vectors. Both $d_i$ and $q_i$ are words (vectors). In QA system, $D$ is the article and $Q$ is the question. The outputs are two positive integers $s$ and $e$. This means that the answer is in the range from the $s$-th word to the $e$-th word.
+
+<img src="assets/image-20240509213240963.png" alt="image-20240509213240963" style="zoom:30%;" />
+
+<img src="assets/image-20240509213311833.png" alt="image-20240509213311833" style="zoom:30%;" />
+
+The orange and blue vectors are the only two set of parameters we need to train.
+
+### Pre-Train Seq2seq Models
+
+It's also possible to pre-train a seq2seq model. We can corrupt the input to the Encoder and let the Decoder reconstruct the original input.
+
+<img src="assets/image-20240509214652739.png" alt="image-20240509214652739" style="zoom:30%;" />
+
+There're many ways you can use to corrupt the input.
+
+<img src="assets/image-20240509214809925.png" alt="image-20240509214809925" style="zoom:28%;" />
+
+
+
+
+
+
+
