@@ -1675,6 +1675,50 @@ There're many ways you can use to corrupt the input.
 
 <img src="assets/image-20240509214809925.png" alt="image-20240509214809925" style="zoom:28%;" />
 
+### Why Does BERT work?
+
+The tokens with similar meaning have similar embedding. BERT can output token vectors that represent similar words with high cosine similarity. 
+
+<img src="assets/image-20240510130519076.png" alt="image-20240510130519076" style="zoom:35%;" />
+
+There was a similar work conducted called **CBOW word embedding**. Using deep learning, BERT appeas to perform better. It can learn the **contextualized word embedding**.
+
+However, learning context of a word may not be the whole story. You can even use BERT to classify meaningless sentences. For example, you can replace parts of a DNA sequence with a random word so that a whole DNA sequence becomes a sentence. You can even use BERT to classify the DNA sequences represented with sentences. Similar works have been done on **protein, DNA and music classification**.
+
+### Multi-Lingual BERT
+
+BERT can also be trained on many languages.
+
+**Cross-Lingual Alignment**: assign similar embeddings to the same words from different languages.
+
+**Mean Reciprocal Rank (MRR)**: Higher MRR, better alignment 
+
+### GPT
+
+GPT uses a different pre-training method -- next token prediction.
+
+# 4/22 Lecture 8: Auto-encoder / Anomaly Detection
+
+## Auto-encoder
+
+Auto-encoder is often used for **dimension reduction** (the output vector of the NN encoder). This idea is very similar to **Cycle GAN**.
+
+<img src="assets/image-20240510141903138.png" alt="image-20240510141903138" style="zoom:33%;" />
+
+**The variation of pictures is very limited**. There are many possible $n \times n$ matrix. But only a very small subset of them are meaningful pictures. So, the job of the encoder is to make complex things simpler. As seen from the graph below, we can represent the possible pictures with a $1\times2$ vector.
+
+<img src="assets/image-20240510150707632.png" alt="image-20240510150707632" style="zoom:25%;" />
+
+### De-noising Auto-encoder
+
+<img src="assets/image-20240510151357919.png" alt="image-20240510151357919" style="zoom:33%;" />
+
+BERT can actually be seen as a de-nosing auto-encoder. Note that the decoder does not have to be a linear model.
+
+<img src="assets/image-20240510151515147.png" alt="image-20240510151515147" style="zoom:25%;" />
+
+### Feature Disentanglement
+
 
 
 
