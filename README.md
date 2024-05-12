@@ -1037,13 +1037,13 @@ Self-attention does not care about position information. For example, it does no
 
 <img src="assets/image-20240506163634996.png" alt="image-20240506163634996" style="zoom:25%;" />
 
-### Self-Attention for Speech
+### Speech
 
 If the input sequence is of length $L$, the attention matrix $A'$ is a matrix of $L$x$L$​, which may require a large amount of computation. Therefore, in practice, we don't look at the whole audio sequence. Instead, we use **truncated self-attention**, which only looks at a small range.
 
 <img src="assets/image-20240506163652228.png" alt="image-20240506163652228" style="zoom:25%;" />
 
-### Self-Attention for Images
+### Images
 
 <img src="assets/image-20240506164243254.png" alt="image-20240506164243254" style="zoom:25%;" />
 
@@ -1064,7 +1064,7 @@ Self-attention is a more complex version of RNN. RNN can be bi-directional, so i
 
 <img src="assets/image-20240506170101038.png" alt="image-20240506170101038" style="zoom:33%;" />
 
-### Self-Attention for Graphs
+### Graphs
 
 <img src="assets/image-20240506170517327.png" alt="image-20240506170517327" style="zoom:33%;" />
 
@@ -1719,7 +1719,341 @@ BERT can actually be seen as a de-nosing auto-encoder. Note that the decoder doe
 
 ### Feature Disentanglement
 
+The embedding includes information of different aspects.
 
+<img src="assets/image-20240510153514659.png" alt="image-20240510153514659" style="zoom:33%;" />
+
+However, we don't need know exactly what dimensions of an embedding contains a particular aspect of information.
+
+Related papers:
+
+<img src="assets/image-20240510153802051.png" alt="image-20240510153802051" style="zoom:33%;" />
+
+Application: Voice Conversion
+
+<img src="assets/image-20240510161627849.png" alt="image-20240510161627849" style="zoom:25%;" />
+
+### Discrete Latent Representation
+
+<img src="assets/image-20240510161651820.png" alt="image-20240510161651820" style="zoom:33%;" />
+
+In the last example, be constraining the embedding to be one-hot, the encoder is able to learn a classification problem (*unsupervised* learning).
+
+The most famous example is: **Vector Quantized Variational Auto-encoder (VQVAE)**.
+
+<img src="assets/image-20240510162432579.png" alt="image-20240510162432579" style="zoom:33%;" />
+
+The parameters we learn in VQVAE are: Encoder, Decoder, the $5$ vectors in the Codebook
+
+This process is very similar to attention. We can think of the output of the Encoder as the Query, the Codebook as Values and Keys.
+
+This method constrains the input of the Decoder to be one of the inputs in the Codebook.
+
+Using this method on speech, the model can learn phonetic information which is represented by the Codebook.
+
+### Text as Representation
+
+<img src="assets/image-20240510163559946.png" alt="image-20240510163559946" style="zoom:33%;" />
+
+We can achieve unsupervised summarization using the architecture above (actually it's just a CycleGAN model). We only need crawled documents to train the model.
+
+Both the Encoder and the Decoder should use **seq2seq** models because they accept sequence as input and output. The Discriminator makes sure the summary is readable. This is called a **seq2seq2seq auto-encoder**. 
+
+### Generator
+
+We can also gain a generator by using the trained Decoder in auto-encoder.
+
+<img src="assets/image-20240510170518530.png" alt="image-20240510170518530" style="zoom:33%;" />
+
+With some modification, we have variational auto-encoder (VAE).
+
+### Compression
+
+The image reconstruction is not $100$%. So, there may be a "lossy" effect on the final reconstructed image.
+
+<img src="assets/image-20240510170803281.png" alt="image-20240510170803281" style="zoom: 33%;" />
+
+## Anomaly Detection
+
+Anomaly Detection: Given a set of training data $\{x^1, x^2, ..., x^N\}$, detecting input $x$​​ is *similar* to training data or not
+
+<img src="assets/image-20240510183428138.png" alt="image-20240510183428138" style="zoom:28%;" />
+
+Use cases:
+
+<img src="assets/image-20240510183459488.png" alt="image-20240510183459488" style="zoom:33%;" />
+
+Anomaly Detection is *better* than training a binary classifier because we often don't have the dataset of anomaly (oftentimes we humans can't even detect anomaly ourselves). Our dataset is primarily composed of "normal" data. Anomaly Detection is often called one-class classification.
+
+This is how we implement anomaly detecter:
+
+<img src="assets/image-20240510184817485.png" alt="image-20240510184817485" style="zoom:30%;" />
+
+There are many ways we can implement anomaly detection, besides anomaly detecter.
+
+# 4/29 Lecture 9: Explainable AI
+
+## Explainable ML
+### Interpretable v.s. Powerful
+
+Some models are intrinsically interpretable.
+
+- For example, linear model (from weights, you know the
+  importance of features)
+- But not very powerful
+- Deep network is difficult to be interpretable. Deep networks are black boxes, but powerful than a linear model. 
+
+For a cat classifier:
+
+**Local Explanation**: why do you think *this image* is a cat?
+
+**Global Explanation**: what does a *cat* look like? (not referring to a specific image)
+
+### Local Explanation
+
+For an object $x$ (image, text, etc), it can be composed of multiple **components**: $\{x_1, ..., x_n, ..., x_N\}$. For each $x_i$ in image it can represent pixel, segment, etc. For each $x_i$ in text, it can represent a word.
+
+We asks the question: "which component is critical for making a decision?" We can therefore **remove or modify the components**. The important components are those that result in **large decision change**.
+
+#### Saliency Map
+
+<img src="assets/image-20240511092757980.png" alt="image-20240511092757980" style="zoom:38%;" />
+
+Sometimes, our Saliency Map may appear noisy (noisy gradient). We can use **SmoothGrad** to solve that -- Randomly *add* noises to the input image, get saliency maps of the noisy images, and *average* them.
+
+<img src="assets/image-20240511092953563.png" alt="image-20240511092953563" style="zoom:33%;" />
+
+#### Integrated Gradient (IG)
+
+However, there may be problems with **gradient saturation**. Gradients can not always reflect importance. In this case, a longer trunk size does not make the object *more* elephant. We can use Integrated Gradient to solve this problem.
+
+<img src="assets/image-20240511095234208.png" alt="image-20240511095234208" style="zoom:33%;" />
+
+#### Network Visualization
+
+<img src="assets/image-20240511100752281.png" alt="image-20240511100752281" style="zoom:33%;" />
+
+We can learn that the network knows that the same sentence spoken by different speaker is similar (erase the identity of the speaker).
+
+#### Network Probing
+
+<img src="assets/image-20240511131445426.png" alt="image-20240511131445426" style="zoom:30%;" />
+
+Using this method, we can tell whether the embeddings have information of POS properties by evaluating the accuracy of the **POS** (Part of Speech) or **NER** (Named-Entity Recognition) classifier. If the accuracy is high, then the embeddings do contain those information.
+
+If the classifier itself has very high bias, then we can not really tell whether the embeddings have those information based on accuracy.
+
+<img src="assets/image-20240511133759883.png" alt="image-20240511133759883" style="zoom:30%;" />
+
+We can also train a TTS model that takes the output of a particular hidden layer as input. If the TTS model outputs an audio sequence that has no speaker information. Then, we can conclude that the model has learned to earse speaker information when doing audio-to-text tasks.
+
+### Global Explanation
+
+<img src="assets/image-20240511133947764.png" alt="image-20240511133947764" style="zoom:33%;" />
+
+We can know based on feature maps (the output of a filter) what patterns a particular filter is responsible for detecting. As a result, for an unknown image $X$, we can try to create an image that tries to create a large value of sum in a feature map:
+
+$$
+X^* = \arg \max_X \sum_i \sum_j a_{ij}
+$$
+
+$X^*$ is the image that contains the patterns filter 1 can detect. We can find $X^*$ using **gradient *ascent***. One example of the resulting $X^*$ looks like this:
+
+<img src="assets/image-20240511140050243.png" alt="image-20240511140050243" style="zoom:28%;" />
+
+However, if we try to find the best image (that maximizes the classification probability), 
+
+$$
+X^* = \arg \max_X y_i
+$$
+
+we fail to see any meaningful pattern:
+
+<img src="assets/image-20240511140257814.png" alt="image-20240511140257814" style="zoom:30%;" />
+
+The images should look like a digit. As a result, we need to add constraints $R(X)$ -- how likely $X$ is a digit:
+
+$$
+X^* = \arg \max_X y_i + R(X)
+$$
+
+where:
+
+$$
+R(X) = - \sum_{i,j} |X_{i,j}|
+$$
+
+$R(X)$ restricts image $X$ to have as little pattern (white regions) as possible since an image of a digit should have a couple of patterns (the rest of the image should just be the cover).
+
+<img src="assets/image-20240511140732770.png" alt="image-20240511140732770" style="zoom:33%;" />
+
+To make the images clearer, we may need several regularization terms, and hyperparameter tuning... 
+
+For example, we can append an image generator $G$ (GAN, VAE, etc) before the classifier that we want to understand.
+
+<img src="assets/image-20240511140917496.png" alt="image-20240511140917496" style="zoom:35%;" />
+
+$$
+z^* = \arg \max_z y_i
+$$
+
+We can then get the image we want by calculating:
+
+$$
+X^* = G(z^*)
+$$
+
+<img src="assets/image-20240511141059751.png" alt="image-20240511141059751" style="zoom:33%;" />
+
+### Outlook
+
+We can use an interpretable model (linear model) to mimic the behavior of an uninterpretable model, e.g. NN (not the complete behavior, only "local range").
+
+<img src="assets/image-20240511142144142.png" alt="image-20240511142144142" style="zoom:33%;" />
+
+This idea is called Local Interpretable Model-Agnostic Explanations (**LIME**)
+
+# 5/06 Lecture 10: Attack
+
+## Adversarial Attack
+
+### Example of Attack
+
+<img src="assets/image-20240511195843588.png" alt="image-20240511195843588" style="zoom:33%;" />
+
+### White Box Attack
+
+Assume we know the parameters $\boldsymbol{\theta}$ of the Network.
+
+<img src="assets/image-20240511195926194.png" alt="image-20240511195926194" style="zoom:33%;" />
+
+Our goal is to find a new picture $\boldsymbol{x}$ that correspond to an output $\boldsymbol{y}$ that is most different from the true label (one-hot) $\boldsymbol{\hat{y}}$. 
+
+Since we also want the noise to be as little as possible, we add an additional constraint: $d(\boldsymbol{x^0}, \boldsymbol{x}) \leq \epsilon$. $\epsilon$​ is a threshold such that we want the noise to be unable to be perceived by humans.
+$$
+\boldsymbol{x^*} = \arg 
+\min_{\boldsymbol{x}, d(\boldsymbol{x^0}, \boldsymbol{x}) \leq \epsilon} 
+L(\boldsymbol{x})
+$$
+
+We also define $\boldsymbol{\Delta x}$:
+$$
+\boldsymbol{\Delta x} = \boldsymbol{x} - \boldsymbol{x^0}
+$$
+This can be seen as:
+$$
+\begin{bmatrix}
+\Delta x_1 \\
+\Delta x_2 \\
+\Delta x_3 \\
+\vdots
+\end{bmatrix}
+=
+\begin{bmatrix}
+x_1 \\
+x_2 \\
+x_3 \\
+\vdots
+\end{bmatrix}
+-
+\begin{bmatrix}
+x_1^0 \\
+x_2^0 \\
+x_3^0 \\
+\vdots
+\end{bmatrix}
+$$
+There are many ways to calculate distance $d$​ between the two images:
+
+**L2-norm**:
+$$
+d(\boldsymbol{x^0}, \boldsymbol{x}) =
+\|\boldsymbol{\Delta x}\|_2 =
+\sqrt{(\Delta x_1)^2 + (\Delta x_2)^2 + \dots}
+$$
+**L-infinity**:
+$$
+d(\boldsymbol{x^0}, \boldsymbol{x}) =
+\|\boldsymbol{\Delta x}\|_{\infty} =
+\max\{|\Delta x_1|,|\Delta x_2|, \dots\}
+$$
+L-infinity is a *better* metric for images because it fits human perception of image differences (as seen from the example below). We may need to use other metrics depending on our domain knowledge.
+
+<img src="assets/image-20240511203532567.png" alt="image-20240511203532567" style="zoom:27%;" />
+
+The Loss function can be defined depending on the specific attack:
+
+**Non-Targeted Attack**:
+
+The Loss function $L$ is defined to be the negative cross entropy between the true label and the output label. Since we want to minimize $L$, this is the same as maximizing $ e(\boldsymbol{y}, \boldsymbol{\hat{y}}) $.
+
+$$
+L(\boldsymbol{x}) = - e(\boldsymbol{y}, \boldsymbol{\hat{y}})
+$$
+
+**Targeted Attack:**
+
+Since we want to *minimize* the Loss function, we add the cross entropy between the output and the target label (since we want the two to be similar, therefore a smaller $e$).
+
+$$
+L(\boldsymbol{x}) = - e(\boldsymbol{y}, \boldsymbol{\hat{y}}) + 
+e(\boldsymbol{y}, \boldsymbol{y^{\text{target}}})
+$$
+
+How can we do optimization?
+
+If we assume we don't have the constraint on $\min$, it's the same as the previous NN training, except that we now update *input*, not parameters (because parameters are now constant).
+
+1. Start from the *original* image $\boldsymbol{x^0}$
+2. From $t=1$ to $T$: $\boldsymbol{x^t} \leftarrow \boldsymbol{x^{t-1}} - \eta \boldsymbol{g}$​
+
+If we consider the constraint, the process is very similar:
+
+1. Start from the *original* image $\boldsymbol{x^0}$
+2. From $t=1$ to $T$: $\boldsymbol{x^t} \leftarrow \boldsymbol{x^{t-1}} - \eta \boldsymbol{g}$​​
+3. If $d(\boldsymbol{x^0}, \boldsymbol{x}) > \epsilon$, then $\boldsymbol{x^t} \leftarrow fix(\boldsymbol{x^t})$​
+
+If we are using L-infinity, we can fix $\boldsymbol{x^t}$ by finding a point within the constraint that is the closest to $\boldsymbol{x^t}$.
+
+<img src="assets/image-20240511205802496.png" alt="image-20240511205802496" style="zoom:28%;" />
+
+#### FGSM
+
+We can use **Fast Gradient Sign Method (FGSM, https://arxiv.org/abs/1412.6572)**:
+
+Redefine $\boldsymbol{g}$ as:
+$$
+\mathbf{g} = \begin{bmatrix} 
+\text{sign}\left(\frac{\partial L}{\partial x_1} \bigg|_{\mathbf{x}=\mathbf{x}^{t-1}}\right) \\ 
+\text{sign}\left(\frac{\partial L}{\partial x_2} \bigg|_{\mathbf{x}=\mathbf{x}^{t-1}} \right) \\ 
+\vdots 
+\end{bmatrix}
+$$
+Here, each entry is either $1$ or $-1$: if $t>0$, $\text{sign}(t) = 1$; otherwise, $\text{sign}(t) = -1$.
+
+1. Start from the *original* image $\boldsymbol{x^0}$
+2. Do only one shot: $\boldsymbol{x^t} \leftarrow \boldsymbol{x^{t-1}} - \epsilon \boldsymbol{g}$​​
+
+<img src="assets/image-20240511210950529.png" alt="image-20240511210950529" style="zoom:28%;" />
+
+In the case of L-infinity, $\boldsymbol{x}$ will move to either of the four *corners*.
+
+There's also an *iterative* version of FGSM, which is basically doing **Step 2** $T$​ iterations
+
+### Black Box Attack
+
+What if we don't have parameters of a private network?
+
+If you have the training data of the target network:
+
+1. Train a proxy network yourself
+2. Using the proxy network to generate attacked objects
+
+If we don't have training data, we can just the targeted network to generate a lot of data points.
+
+<img src="assets/image-20240511221530022.png" alt="image-20240511221530022" style="zoom:33%;" />
+
+It's also possible to do **One Pixel Attack** (only add noise to one pixel of an image) and **Universal Adversarial Attack** (use one noise signals to attack all the image inputs for a model).
 
 
 
