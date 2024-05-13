@@ -2055,6 +2055,157 @@ If we don't have training data, we can just the targeted network to generate a l
 
 It's also possible to do **One Pixel Attack** (only add noise to one pixel of an image) and **Universal Adversarial Attack** (use one noise signals to attack all the image inputs for a model).
 
+#### Attack in Physical World
+
+- An attacker would need to find perturbations that generalize beyond a single image. 
+- Extreme differences between adjacent pixels in the perturbation are unlikely to be accurately captured by cameras. 
+- It is desirable to craft perturbations that are comprised mostly of colors reproducible by the printer
+
+<img src="assets/image-20240512085236115.png" alt="image-20240512085236115" style="zoom: 25%;" />
+
+#### Adversarial Reprogramming
+
+<img src="assets/image-20240512085321302.png" alt="image-20240512085321302" style="zoom:28%;" />
+
+#### "Backdoor" in Model
+
+- Attack happens in the training phase
+- We need to be careful of open public dataset
+
+<img src="assets/image-20240512085352803.png" alt="image-20240512085352803" style="zoom:30%;" />
+
+### Passive Defense
+
+Passive Defense means that we do not change the parameter of the model.
+
+<img src="assets/image-20240513085222368.png" alt="image-20240513085222368" style="zoom:30%;" />
+
+The overall objective is to apply a *filter* to make the attack signal less powerful.
+
+<img src="assets/image-20240513085504231.png" alt="image-20240513085504231" style="zoom:28%;" />
+
+One way to implement this is that we can apply **Smoothing** on the input image. This will alter the attack signal, making it much less harmful. However, we need to pay attention to its side effect -- it may make the classification confidence lower, though it rarely affects the accuracy.
+
+We can also use image compression and generator to implement this.
+
+However, these methods have some drawbacks. For example, if the attackers know these methods are used as defenses, they can obtain a signal that has taken into account these filters (just treat them as the starting layers of the network). Therefore, we can use **randomization**.
+
+<img src="assets/image-20240513090827186.png" alt="image-20240513090827186" style="zoom:33%;" />
+
+### Proactive Defense
+
+We can use **Adversarial Training** (training a model that is robust to adversarial attack). This method is an example of **Data Augumentation**.
+
+Given training set $\mathcal{X} = \{(\boldsymbol{x^1}, \hat{y}^1), ..., (\boldsymbol{x^N}, \hat{y}^N)\}$:
+
+Using $\mathcal{X}$​ to train your model
+
+1. For $n = 1$ to $N$: Find adversarial input $\boldsymbol{\tilde{x}^n}$ given $\boldsymbol{x^n}$​ by **an attack algorithm**
+
+2. We then have new training data $\mathcal{X}' = \{(\boldsymbol{\tilde{x}^1}, \hat{y}^1), ..., (\boldsymbol{\tilde{x}^N}, \hat{y}^N)\}$
+
+3. Using both $\mathcal{X}$ and $\mathcal{X}'$​​ to update your model
+4. Repeat Steps 1-3 
+
+However, if we did not consider an attack algorithm in Adversarial Training, this method will not prevent the attack from that algorithm.
+
+However, Adversarial Training is very computationally *expensive*.
+
+# 5/13 Lecture 11: Adaptation
+
+## Domain Adaptation
+
+<img src="assets/image-20240513093652027.png" alt="image-20240513093652027" style="zoom:25%;" />
+
+**Domain shift**: Training and testing data have different distributions
+
+There are also many different aspects of doman shift:
+
+<img src="assets/image-20240513094020488.png" alt="image-20240513094020488" style="zoom:30%;" />
+
+<img src="assets/image-20240513094038533.png" alt="image-20240513094038533" style="zoom:32%;" />
+
+If we have some labeled data points from the target domain, we can train a model by source data, then *fine-tune* the model by target data. However, since there's only limited target data, we need to be careful about *overfitting*.
+
+However, the most common scenairo is that we often have large amount of unlabeled target data.
+
+<img src="assets/image-20240513095238778.png" alt="image-20240513095238778" style="zoom:33%;" />
+
+We can train a Feature Extractor (a NN) to output the features of the input.
+
+### Domain Adversarial Training
+
+<img src="assets/image-20240513095752543.png" alt="image-20240513095752543" style="zoom:36%;" />
+
+Domain Classifier is a binary classifier. The goal of the Label Predictor is to be as accurate as possible on Source Domain images. The goal of the Domain Classifier is to be as accurate as possible on any image.
+
+### Domain Generalization
+
+If we do not know anything about the target domain, then the problem we are dealing with is Domain Generalization.
+
+# 5/20 Lecture 12: Reinforcement Learning
+
+## RL
+
+Just like ML, RL is also looking for a function, the Actor.
+
+<img src="assets/image-20240513123225764.png" alt="image-20240513123225764" style="zoom:33%;" />
+
+### Policy Network
+
+<img src="assets/image-20240513124558164.png" alt="image-20240513124558164" style="zoom:33%;" />
+
+The **Actor** architecture can be anything: FC NN, CNN, transformer...
+
+Input of NN: the observation of machine represented as a vector or a matrix 
+
+Output of NN: each **action** corresponds to a neuron in output layer (they represent the probability of the action the Actor will take -- we don't always take the action with maximum probability)
+
+### Loss
+
+An **episode** is the whole process from the first observation $s_1$​ to game over.
+
+The **total reward**, a.k.a. **return**, is what we want to maximize:
+$$
+R = \sum_{t=1}^T r_t
+$$
+
+### Optimization
+
+A **trajectory** $\tau$ is the set of all the observations and actions.
+$$
+\tau = \{s_1, a_1, s_2, a_2, ...\}
+$$
+Reward is a function of $s_i$ and $a_i$, the current observation and the current action.
+
+<img src="assets/image-20240513125325278.png" alt="image-20240513125325278" style="zoom:35%;" />
+
+This idea is similar to GAN. The Actor is like a Generator; the Reward and the Environment together are like the Discriminator. However, in RL, the Reward and the Environment are not NN. This makes the problem not able to be solved by gradient descent.
+
+### Control an Actor
+
+Make an Actor take or *don't* take a specific action $\hat{a}$ given specific observation $s$.
+
+<img src="assets/image-20240513133923534.png" alt="image-20240513133923534" style="zoom:33%;" />
+
+By defining the loss and the labels, we can achieve the following goal:
+
+<img src="assets/image-20240513134431998.png" alt="image-20240513134431998" style="zoom:33%;" />
+
+This is almost like supervised learning. We can train the Actor by getting a dataset:
+
+<img src="assets/image-20240513134708863.png" alt="image-20240513134708863" style="zoom:33%;" />
+
+We can also redefine the loss by introducing weights for each {observation, action} pair. For example, we are more desired to see $\hat{a}_1$ followed by $s_1$ than $\hat{a}_3$ followed by $s_3$.
+$$
+L = \sum A_n e_n
+$$
+<img src="assets/image-20240513135117659.png" alt="image-20240513135117659" style="zoom: 33%;" />
+
+The difficulty is what determines $A_i$ and what $\{s_i, \hat{a}_i\}$ pairs to generate.
+
+
+
 
 
 
