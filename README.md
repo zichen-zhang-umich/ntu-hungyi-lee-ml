@@ -2166,6 +2166,7 @@ Output of NN: each **action** corresponds to a neuron in output layer (they repr
 An **episode** is the whole process from the first observation $s_1$​ to game over.
 
 The **total reward**, a.k.a. **return**, is what we want to maximize:
+
 $$
 R = \sum_{t=1}^T r_t
 $$
@@ -2173,9 +2174,11 @@ $$
 ### Optimization
 
 A **trajectory** $\tau$ is the set of all the observations and actions.
+
 $$
 \tau = \{s_1, a_1, s_2, a_2, ...\}
 $$
+
 Reward is a function of $s_i$ and $a_i$, the current observation and the current action.
 
 <img src="assets/image-20240513125325278.png" alt="image-20240513125325278" style="zoom:35%;" />
@@ -2197,12 +2200,97 @@ This is almost like supervised learning. We can train the Actor by getting a dat
 <img src="assets/image-20240513134708863.png" alt="image-20240513134708863" style="zoom:33%;" />
 
 We can also redefine the loss by introducing weights for each {observation, action} pair. For example, we are more desired to see $\hat{a}_1$ followed by $s_1$ than $\hat{a}_3$ followed by $s_3$.
+
 $$
 L = \sum A_n e_n
 $$
+
 <img src="assets/image-20240513135117659.png" alt="image-20240513135117659" style="zoom: 33%;" />
 
 The difficulty is what determines $A_i$ and what $\{s_i, \hat{a}_i\}$ pairs to generate.
+
+### Version 0
+
+<img src="assets/image-20240515154630524.png" alt="image-20240515154630524" style="zoom:28%;" />
+
+We can start with a randomly-initialized Actor and then run it with *many episodes*. This will help collect us with some data. If we see a observation-action pair that produces positive reward, we will assign a positive $A_i$​ value to that pair.
+
+However, generally speaking, this is not a very good strategy since actions are not independent. 
+
+- An action affects the subsequent observations and thus subsequent rewards. 
+- **Reward delay**: Actor has to sacrifice immediate reward to gain more long-term reward.
+- In *space invader*, only “fire” yields positive reward, so vision 0 will learn an actor that always “fire”.
+
+### Version 1
+
+We need to take into account all the rewards that we gain after performing one action at timestamp $t$. Therefore, we can define a **cumulated reward** (as opposed to an immediate reward in the last version) $G_t$:
+
+$$
+A_t = G_t = \sum_{n=t}^N r_n
+$$
+
+<img src="assets/image-20240515155541817.png" alt="image-20240515155541817" style="zoom:33%;" />
+
+### Version 2
+
+However, if the sequence of length $N$ is very long, then $r_N$ if probably not the credit of $a_1$. Therefore, we can redefine $G_t'$ using a **discount factor** $\gamma < 1$:
+
+**Discounted Cumulated Reward**:
+$$
+A_t = G_t' = \sum_{n=t}^N \gamma^{n-t} r_n
+$$
+
+### Version 3
+
+But good or bad rewards are "relative." If all the $r_n \geq 10$, then having a reward of $10$ is actually very bad. We can redefine $A_i$ values by minusing by a **baseline** $b$. This makes $A_i$ to have positive and negative values.
+
+$$
+A_t = G_t' - b
+$$
+
+### Policy Gradient
+
+1. Initialize Actor NN parameters $\theta^0$
+2. For training iteration $i=1$ to $T$:
+   - Using Actor $\theta^{i-1}$ to interact with the environment.
+   - We then obtain data/training set $\{s_1, a_1\}, \{s_2, a_2\}, ..., \{s_N, a_N\}$​. Note that here the data collection is in the `for` loop of training iterations.
+   - Compute $A_1, A_2, ..., A_N$
+   - Compute Loss $L=\sum_n A_n e_n$
+   - Update Actor parameters using gradient descent: $\theta^i \leftarrow \theta^{i-1} - \eta \nabla L$​
+
+This process (from 2.1 to 2.3) is very expensive. Each time you update the model parameters, you need to collect the whole training set again. However, this process is necessary because it is based on the *experience* of Actor $\theta^{i-1}$。 We need to use a the new Actor $\theta^i$​'s *trajectory* to train the new Actor.
+
+**On-Policy** Learning: <u>the actor to train</u> and <u>the actor for interacting</u> are the same.
+
+**Off-Policy** Learning: <u>the actor to train</u> and <u>the actor for interacting</u> are different. In this way, we don't have to collect data after each update
+
+- One example is **Proximal Policy Optimization (PPO)**. The actor to train has to know its difference with the actor to interact.
+
+**Exploration**: The actor needs to have some *randomness* during data collection (remember that we sample our action). If the initial setting of the actor is always performing one action, then we  will never know whether other actions are good or bad. If we don't have randomness, we can't really train the actor. With exploration, we can collect more diverse data. We sometimes want to even deliberately add randomness. We can **enlarge output entropy** or **add noises onto parameters of the actor**.
+
+### Critic
+
+Critic: Given actor $\theta$, how good it is when observing $s$ (and taking action $a$​).
+
+- An example is **value function** $V^{\theta}(s)$: When using actor $\theta$, the **discounted *cumulated* reward** (see Version 2) expected to be obtained after seeing $s$. Note that since the function depends on $\theta$, the same observation $s$ will have a different associated value if the actors are different. **The output values of a critic depend on the actor evaluated**.
+
+<img src="assets/image-20240515215300373.png" alt="image-20240515215300373" style="zoom:33%;" />
+
+How to train a critic?
+
+One way is to use **Monte-Carlo (MC)** based approach: The critic watches actor $\theta$ to interact with the environment. However, we can only update $V^{\theta}$ after the episode is over.
+
+<img src="assets/image-20240515215625579.png" alt="image-20240515215625579" style="zoom:35%;" />
+
+$V^{\theta}(s_a)$ should be as close as possible to $G'_a$ and $V^{\theta}(s_b)$ should be as close as possible to $G'_b$.
+
+Another way is **Temporal-difference (TD)** approach. We don't need to wait for the entire episode.
+
+<img src="assets/image-20240515220314195.png" alt="image-20240515220314195" style="zoom:35%;" />
+
+
+
+
 
 
 
