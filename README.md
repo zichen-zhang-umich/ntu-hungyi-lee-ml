@@ -2290,7 +2290,41 @@ Another way is **Temporal-difference (TD)** approach. We don't need to wait for 
 
 <img src="assets/image-20240515220314195.png" alt="image-20240515220314195" style="zoom:35%;" />
 
+MC and TD may produce *different* results for the same $V^{\theta}$​ with the same dataset as seen from the following example in *Sutton* v2 (Example 6.4). 
 
+That is because MC and TD have different assumptions. For TD, we assume that $s_a$ can *not* influence $s_b$ (no correlation). It is possible that our dataset (the samples) is limited. For MC, we assume that $s_a$ can influence $s_b$. It is possible that observing $s_a$ influences the reward of observing $s_b$ so that it is always zero.
+
+<img src="assets/image-20240516212052542.png" alt="image-20240516212052542" style="zoom:38%;" />
+
+### Version 3.5
+
+How can we use critic on training actor?
+
+Recall that in Version 3, we introduce a baseline $b$ as normalization. How to choose $b$? One possible way is to set $b = V^{\theta}(s_t)$.
+$$
+A_t = G_t' - V^{\theta}(s_t)
+$$
+<img src="assets/image-20240516213342601.png" alt="image-20240516213342601" style="zoom:35%;" />
+
+Why this method works? Remember that $V^{\theta}(s_t)$ takes into account many episodes, so it's an expected value. This makes $A_t$ very intuitive.
+
+<img src="assets/image-20240516213852293.png" alt="image-20240516213852293" style="zoom:38%;" />
+
+### Version 4: Advantage Actor-Critic
+
+However, Version 3 is still problematic because $G_t'$ may be very random (it's just a sample). It may be very good or bad. We want it to resemble an average value like $V^{\theta}(s_t)$​​​.
+
+Therefore, for a pair $\{ s_t, a_t \}$:
+$$
+A_t = \left[r_t + V^{\theta}(s_{t+1})\right] - V^{\theta}(s_t)
+$$
+Note that $s_{t+1}$ is the observation of the environment influenced by the actor taking action $a_t$.
+
+<img src="assets/image-20240516214628159.png" alt="image-20240516214628159" style="zoom:36%;" />
+
+The parameters of actor and critic can be shared. In practice, the first several layers are shared in common. If the observation is an image, then the convolutional layers will be shared.
+
+<img src="assets/image-20240516220033541.png" alt="image-20240516220033541" style="zoom:33%;" />
 
 
 
