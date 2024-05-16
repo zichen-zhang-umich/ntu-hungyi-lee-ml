@@ -2276,6 +2276,8 @@ Critic: Given actor $\theta$, how good it is when observing $s$ (and taking acti
 
 <img src="assets/image-20240515215300373.png" alt="image-20240515215300373" style="zoom:33%;" />
 
+### MC & TD
+
 How to train a critic?
 
 One way is to use **Monte-Carlo (MC)** based approach: The critic watches actor $\theta$ to interact with the environment. However, we can only update $V^{\theta}$ after the episode is over.
