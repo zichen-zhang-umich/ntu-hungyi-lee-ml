@@ -2326,7 +2326,55 @@ The parameters of actor and critic can be shared. In practice, the first several
 
 <img src="assets/image-20240516220033541.png" alt="image-20240516220033541" style="zoom:33%;" />
 
+### Reward Shaping
 
+In tasks like robot arm bolting on the screws, the reward $r_t$ is always or mostly $0$​ (**spare reward**) because the actor is randomly initialized and it will very likely fail to complete the task. So, we may not know what actions are good or bad. As a consequence, developers can define *extra* rewards to guide agents. This is called **reward shaping**.
+
+For example, we can incentive the actor to do different things by defining extra rewards based on our *domain knowledge*.
+
+<img src="assets/image-20240517182146078.png" alt="image-20240517182146078" style="zoom:33%;" />
+
+We can also add **curiosity** as an extra reward: obtaining extra reward when the agent sees something new (but meaningful).
+
+### Imitation Learning
+
+Defining a reward can be challenging in some tasks. Hand-crafted rewards can lead to uncontrolled behavior.
+
+We can use Imitation Learning. We assume that actor can interact with the environment, but reward function is not available.
+
+<img src="assets/image-20240517183746682.png" alt="image-20240517183746682" style="zoom:33%;" />
+
+We can record demonstration of an expert (for example recording of human drivers in self-driving cars training). We define $\{\hat{\tau}_1, ..., \hat{\tau}_K\}$, where each $\hat{\tau}_i$​​ is one trajectory of the expert. Isn't this supervised learning? Yes, this is known as **Behavior Cloning**. This method has several problems:
+
+- The experts only sample limited observation. The actor will not know what to do in other edge cases.
+- The agent will copy every behavior, even irrelevant actions.
+
+### Inverse RL (IRL)
+
+This is vanilla RL:
+
+<img src="assets/image-20240517184906946.png" alt="image-20240517184906946" style="zoom:25%;" />
+
+Inverse RL has the exact *opposite* direction of process. It first learns the reward function and then uses that reward function to find the optimal actor.
+
+<img src="assets/image-20240517185033513.png" alt="image-20240517185033513" style="zoom:33%;" />
+
+The principle is that the teacher is always the best. As a result, the basic algorithm is:
+
+1. Initialize an actor.
+2. In each iteration:
+   1. The actor interacts with the environments to obtain some trajectories. 
+   2. Define a reward function, which makes **the trajectories of the teacher better than the actor**. 
+   3. The actor learns to maximize the reward based on the new reward function.
+   4. Repeat.
+
+3. Output the reward function and the actor learned from the reward function.
+
+<img src="assets/image-20240517185753070.png" alt="image-20240517185753070" style="zoom:33%;" />
+
+IRL is very similar to GAN:
+
+<img src="assets/image-20240517185920053.png" alt="image-20240517185920053" style="zoom:33%;" />
 
 
 
