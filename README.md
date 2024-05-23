@@ -1,3 +1,5 @@
+***Acknowledgement***:
+
 The course website: [MACHINE LEARNING 2022 SPRING](https://speech.ee.ntu.edu.tw/~hylee/ml/2022-spring.php)
 
 # 2/18 Lecture 1: Introduction of Deep Learning
@@ -502,10 +504,7 @@ It's also problematic to directly represent Class 1 as numeric value $1$, Class 
 One possible model is:
 
 $$
-f(x) = \begin{cases} 
-1 & g(x) > 0 \\
-2 & \text{else}
-\end{cases} 
+f(x) = \begin{cases} 1 & g(x) > 0 \\ 2 & \text{else} \end{cases}
 $$
 
 The loss function denotes the number of times $f$ gets incorrect results on training data.
@@ -567,9 +566,7 @@ Cross-entropy is more frequently used for classification than MSE. At the region
 <img src="assets/image-20240505110347099.png" alt="image-20240505110347099" style="zoom:25%;" />
 
 $$
-P(C_1 \mid x) 
-= \frac{P(C_1, x)}{P(x)} 
-= \frac{P(x \mid C_1)P(C_1)}{P(x \mid C_1)P(C_1) + P(x \mid C_2)P(C_2)}
+P(C_1 \mid x) = \frac{P(C_1, x)}{P(x)} = \frac{P(x \mid C_1)P(C_1)}{P(x \mid C_1)P(C_1) + P(x \mid C_2)P(C_2)}
 $$
 
 We can therefore predict the distribution of $x$:
