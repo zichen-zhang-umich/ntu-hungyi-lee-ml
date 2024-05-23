@@ -51,7 +51,7 @@ If $y$ and $\hat{y}_n$ are both probability distributions, we can use **cross en
 The goal is to find the best parameter:
 
 $$
-w^{*}, b^{*} = \arg\min_{w,b} L
+w^*, b^* = \arg\min_{w,b} L
 $$
 
 Solution: **Gradient Descent**
@@ -92,7 +92,7 @@ More pieces require more blue curves.
 How to represent a blue curve (**Hard Sigmoid** function): **Sigmoid** function
 
 $$
-y = c\:\frac{1}{1 + e^{-(b + wx_1)}} = c\:\text{sigmoid}(b + wx_1)
+y = c\frac{1}{1 + e^{-(b + wx_1)}} = c\text{sigmoid}(b + wx_1)
 $$
 
 We can change $w$, $c$ and $b$ to get sigmoid curves with different shapes.
@@ -106,13 +106,13 @@ Different Sigmoid curves -> Combine to approximate different piecewise linear fu
 From a model with high bias $y=b+wx_1$ to the new model with more features and a much lower bias:
 
 $$
-y = b + \sum_{i} \; c_i \; \text{sigmoid}(b_i + w_i x_1)
+y = b + \sum_{i} c_i \text{sigmoid}(b_i + w_i x_1)
 $$
 
 Also, if we consider multiple features $y = b + \sum_{j} w_j x_j$​, the new model can be expanded to look like this:
 
 $$
-y = b + \sum_{i} c_i \; \text{sigmoid}(b_i + \sum_{j} w_{ij} x_j)
+y = b + \sum_{i} c_i \text{sigmoid}(b_i + \sum_{j} w_{ij} x_j)
 $$
 
 Here, $i$ represents each sigmoid function and $j$ represents each feature. $w_{ij}$ represents the weight for $x_j$ that corresponds to the $j$-th feature in the $i$-th sigmoid.
@@ -143,7 +143,7 @@ $$
 $$
 
 1. (Randomly) pick initial values $\boldsymbol{\theta}^0$​
-2. calculate the gradient $\bold{g} = \begin{bmatrix} \frac{\partial{L}}{\partial{\theta_1}}\bigg|_{\boldsymbol{\theta}=\boldsymbol{\theta}^0} \\ \frac{\partial{L}}{\partial{\theta_2}}\bigg|_{\boldsymbol{\theta}=\boldsymbol{\theta}^0} \\ \vdots \end{bmatrix} = \nabla L(\boldsymbol{\theta}^0)$ with $\boldsymbol{\theta}, \boldsymbol{g} \in \mathbb{R}^n$
+2. calculate the gradient $\boldsymbol{g} = \begin{bmatrix} \frac{\partial{L}} {\partial{\theta_1}}\bigg|_{\boldsymbol{\theta}=\boldsymbol{\theta}^0} \\ \frac{\partial{L}}{\partial{\theta_2}}\bigg|_{\boldsymbol{\theta}=\boldsymbol{\theta}^0} \\ \vdots \end{bmatrix} = \nabla L(\boldsymbol{\theta}^0)$ with $\boldsymbol{\theta}, \boldsymbol{g} \in \mathbb{R}^n$
 3. perform the update step: $\begin{bmatrix} \theta_1^1 \\ \theta_2^1 \\ \vdots \end{bmatrix} \leftarrow \begin{bmatrix} \theta_1^0 \\ \theta_2^0 \\ \vdots \end{bmatrix} - \begin{bmatrix} \eta \frac{\partial{L}}{\partial{\theta_1}}\bigg|_{\boldsymbol{\theta}=\boldsymbol{\theta}^0} \\ \eta \frac{\partial{L}}{\partial{\theta_2}}\bigg|_{\boldsymbol{\theta}=\boldsymbol{\theta}^0} \\ \vdots \end{bmatrix}$, namely $\boldsymbol{\theta}^1 \leftarrow \boldsymbol{\theta}^0 - \eta \boldsymbol{g}$
 
 The terms ***batch*** and ***epoch*** are different.
@@ -862,7 +862,7 @@ We set $\boldsymbol{\gamma}$ to $[1,1,...]^T$ and $\boldsymbol{\beta}$ to $[0,0,
 
 We do not always have batch at testing stage. 
 
-Computing the moving average of $\boldsymbol{\mu}$ and $\boldsymbol{\sigma}$​ of the batches during training (PyTorch has an implementation of this). The hyperparamteer $p$ is usually $0.1$.
+Computing the moving average of $\boldsymbol{\mu}$ and $\boldsymbol{\sigma}$​ of the batches during training (PyTorch has an implementation of this). The hyperparamteer $p$ is usually $0.1$. $\boldsymbol{\mu^t}$ is the $t$-th **batch**'s $\boldsymbol{\mu}$. 
 $$
 \boldsymbol{\bar{\mu}} \leftarrow 
 p \boldsymbol{\bar{\mu}} + (1-p) \boldsymbol{\mu^t}
@@ -1930,6 +1930,7 @@ Assume we know the parameters $\boldsymbol{\theta}$ of the Network.
 Our goal is to find a new picture $\boldsymbol{x}$ that correspond to an output $\boldsymbol{y}$ that is most different from the true label (one-hot) $\boldsymbol{\hat{y}}$. 
 
 Since we also want the noise to be as little as possible, we add an additional constraint: $d(\boldsymbol{x^0}, \boldsymbol{x}) \leq \epsilon$. $\epsilon$​ is a threshold such that we want the noise to be unable to be perceived by humans.
+
 $$
 \boldsymbol{x^*} = \arg 
 \min_{\boldsymbol{x}, d(\boldsymbol{x^0}, \boldsymbol{x}) \leq \epsilon} 
