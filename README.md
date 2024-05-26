@@ -1592,6 +1592,28 @@ Cycle GAN can also be in both ways:
 
 It can also be applied on **text-style transfer**. This idea is also applied on Unsupervised Abstractive Summarization, Unsupervised Translation, Unsupervised ASR.
 
+## Extra: Diffusion Models
+
+<img src="assets/image-20240526211244237.png" alt="image-20240526211244237" style="zoom:30%;" />
+
+What does the **denoise module** look like specifically? It's easier to train a noise predicter than training a model that can "draw the cat" from scratch.
+
+<img src="assets/image-20240526211359794.png" alt="image-20240526211359794" style="zoom:30%;" />
+
+How can we obtain the training dataset for training a noise predictor? This involves the **Forward Process**, a.k.a. **Diffusion Process**.
+
+<img src="assets/image-20240526211903044.png" alt="image-20240526211903044" style="zoom:30%;" />
+
+We can then use our dataset to train the model.
+
+<img src="assets/image-20240526212022681.png" alt="image-20240526212022681" style="zoom:30%;" />
+
+How do we use it for text-to-image tasks?
+
+<img src="assets/image-20240526212332705.png" alt="image-20240526212332705" style="zoom:30%;" />
+
+<img src="assets/image-20240526212423419.png" alt="image-20240526212423419" style="zoom:33%;" />
+
 # 4/01 Recent Advance of Self-supervised learning for NLP
 
 ## Self-supervised Learning
@@ -2376,7 +2398,7 @@ IRL is very similar to GAN:
 
 # 5/27 Lecture 13: Network Compression
 
-## Network Pruning and Lottery Ticket Hypothesis
+## Preparation 1: Network Pruning and Lottery Ticket Hypothesis
 
 We may need to deploy ML models in resource-constrained environments because of lower-latency and privacy concerns.
 
@@ -2408,7 +2430,7 @@ It is widely known that smaller network is more difficult to learn successfully.
 
 The **Lottery Ticket Hypothesis** states that a large network is like a bunch of sub-networks so that we have a higher chance of train the network successfully. 
 
-## Other ways
+## Preparation 2: Other ways
 
 ### Knowledge Distillation
 
@@ -2485,4 +2507,67 @@ Therefore, we can approximate the matrix $W=UV$ though there're some constraints
 The Depthwise Seperable Convolution is very similar to this idea of using two layers to replace one layer in order to reduce the parameter size.
 
 <img src="assets/image-20240526153043698.png" alt="image-20240526153043698" style="zoom:33%;" />
+
+# 6/03 Lecture 14: Life-Long Learning
+
+## Preparation 1: Catastrophic Forgetting
+
+### Challenges
+
+Life-Long Learning (**LLL**) is also known as **Continuous Learning**, **Never Ending Learning** or **Incremental Learning**.
+
+This problem is also evident in real-world applications:
+
+<img src="assets/image-20240526213202226.png" alt="image-20240526213202226" style="zoom:28%;" />
+
+One example of the problem LLL tries to tackle is:
+
+<img src="assets/image-20240526214316424.png" alt="image-20240526214316424" style="zoom:33%;" />
+
+<img src="assets/image-20240526214334996.png" alt="image-20240526214334996" style="zoom:38%;" />
+
+The network has enough capacity to learn both tasks. However, it still failed.
+
+<img src="assets/image-20240526214836392.png" alt="image-20240526214836392" style="zoom:33%;" />
+
+It's not because machine are not able to do it, but it just didn't do it.
+
+Even though multi-task training can solve this problem, this may lead to issues concerning **computation** and **storage**. For example, if we want to train the model on the dataset of the 1000-th task, we have to store the previous 999 tasks. However, multi-task training can be considered as the *upper bound* of LLL.
+
+Training a model for each task is also a possible solution. However, we cannot store all the models obviously for storage reasons. More importantly, this way, knowledge cannot transfer across different tasks.
+
+### Live-Long v.s. Transfer
+
+LLL is different from transfer learning. In transfer learning, we don't care about whether the model can still do the old task.
+
+### Evaluation
+
+<img src="assets/image-20240526221251157.png" alt="image-20240526221251157" style="zoom:38%;" />
+
+Here, $R_{i,j}$ means the performance (accuracy) on task $j$ after training task $i$​. 
+
+- If $i>j$, after training on task $i$, does the model forgot task $j$?
+- If $i<j$, after training on task $i$, can we transfer the skill of task $i$ to task $j$?
+
+We can define the accuracy to be:
+
+$$
+\text{score} = \frac{1}{T} \sum_{i=1}^{T} R_{T,i}
+$$
+
+Alternatively, we can define the accuracy using a metric called **Backward Transfer**:
+
+$$
+\text{score} = \frac{1}{T-1} \sum_{i=1}^{T-1} R_{T,i} - R_{i,i}
+$$
+
+Since $R_{T,i}$ is usually smaller than $R_{i,i}$, the score is usually *negative*.
+
+We are also interested in the knowledge transfer. Therefore, there's another score metric called Forward Transfer:
+
+$$
+\text{score} = \frac{1}{T-1} \sum_{i=2}^{T} R_{i-1,i} - R_{0,i}
+$$
+
+## Preparation 2: Solutions
 
