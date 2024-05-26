@@ -94,7 +94,7 @@ More pieces require more blue curves.
 How to represent a blue curve (**Hard Sigmoid** function): **Sigmoid** function
 
 $$
-y = c\frac{1}{1 + e^{-(b + wx_1)}} = c\text{sigmoid}(b + wx_1)
+y = c\cdot \frac{1}{1 + e^{-(b + wx_1)}} = c\cdot \text{sigmoid}(b + wx_1)
 $$
 
 We can change $w$, $c$ and $b$ to get sigmoid curves with different shapes.
@@ -108,13 +108,13 @@ Different Sigmoid curves -> Combine to approximate different piecewise linear fu
 From a model with high bias $y=b+wx_1$ to the new model with more features and a much lower bias:
 
 $$
-y = b + \sum_{i} c_i \text{sigmoid}(b_i + w_i x_1)
+y = b + \sum_{i} c_i \cdot \text{sigmoid}(b_i + w_i x_1)
 $$
 
 Also, if we consider multiple features $y = b + \sum_{j} w_j x_j$​, the new model can be expanded to look like this:
 
 $$
-y = b + \sum_{i} c_i \text{sigmoid}(b_i + \sum_{j} w_{ij} x_j)
+y = b + \sum_{i} c_i \cdot \text{sigmoid}(b_i + \sum_{j} w_{ij} x_j)
 $$
 
 Here, $i$ represents each sigmoid function and $j$ represents each feature. $w_{ij}$ represents the weight for $x_j$ that corresponds to the $j$-th feature in the $i$-th sigmoid.
@@ -197,11 +197,11 @@ Traing steps:
 
 Model bias: the potential function set of our model does not even include the desired optimal function/model.
 
-<img src="assets/image-20240503173246516.png" alt="image-20240503173246516" style="zoom: 25%;" />
+<img src="assets/image-20240526124823314.png" alt="image-20240526124823314" style="zoom:33%;" />
 
 Large loss doesn't always imply issues with model bias. There may be issues with *optimization*. That is, gradient descent does not always produce global minima. We may stuck at a local minima. In the language of function set, the set theoretically contain optimal function $f^*(\boldsymbol{x})$. However, we may never reach that.
 
-<img src="assets/image-20240503174333051.png" alt="image-20240503174333051" style="zoom: 33%;" />
+<img src="assets/image-20240526124848542.png" alt="image-20240526124848542" style="zoom:30%;" />
 
 ### Optimization issue
 
@@ -213,7 +213,7 @@ Large loss doesn't always imply issues with model bias. There may be issues with
 
 For example, here, the 5-layer should always do better or the same as the 4-layer network. This is clearly due to optimization problems.
 
-<img src="assets/image-20240504100948916.png" alt="image-20240504100948916" style="zoom:25%;" />
+<img src="assets/image-20240526125018446.png" alt="image-20240526125018446" style="zoom:33%;" />
 
 ### Overfitting
 
@@ -231,7 +231,7 @@ Solutions:
 
 For example, CNN is a more constrained version of the fully-connected vanilla neural network.
 
-<img src="assets/image-20240504102902784.png" alt="image-20240504102902784" style="zoom:25%;" />
+<img src="assets/image-20240526124935031.png" alt="image-20240526124935031" style="zoom:25%;" />
 
 ### Bias-Complexity Trade-off
 
@@ -2374,7 +2374,11 @@ IRL is very similar to GAN:
 
 <img src="assets/image-20240517185920053.png" alt="image-20240517185920053" style="zoom:33%;" />
 
+# 5/27 Lecture 13: Network Compression
 
+## NN Pruning and Lottery Ticket Hypothesis
+
+We may need to deploy ML models in resource-constrained environments.
 
 
 
