@@ -2376,11 +2376,113 @@ IRL is very similar to GAN:
 
 # 5/27 Lecture 13: Network Compression
 
-## NN Pruning and Lottery Ticket Hypothesis
+## Network Pruning and Lottery Ticket Hypothesis
 
-We may need to deploy ML models in resource-constrained environments.
+We may need to deploy ML models in resource-constrained environments because of lower-latency and privacy concerns.
 
+NN are typically *over-parameterized* -- there's significant redundant weights or neurons.
 
+How to evaluate the importance of a *weight*? We can either look at its **absolute value** or its $b_i$​ value as seen in life-long learning.
 
+How to evaluate the importance of a *neuron*? We can record the number of times it didn't output a $0$​ on a given dataset.
 
+After pruning, the accuracy will drop (hopefully not too much). We can then fine-tune on training data for recover. Remember not to prune too much at once, or the NN won’t recover. We can do the whole process iteratively.
+
+<img src="assets/image-20240526130630137.png" alt="image-20240526130630137" style="zoom:33%;" />
+
+**Weight pruning** is *not* always a very effective method. The network architecture becomes irregular (not fully-connected anymore). It also becomes harder to implement and harder to speed up (if you set the pruned weights to $0$, then you are not actually making the NN any smaller).
+
+<img src="assets/image-20240526131333421.png" alt="image-20240526131333421" style="zoom:30%;" />
+
+**Neuron pruning** is a *better* method as it helps the NN architecture stay regular. It's also easy to implement and easy to speedup.
+
+<img src="assets/image-20240526131735594.png" alt="image-20240526131735594" style="zoom:30%;" />
+
+How about simply train a smaller network? 
+
+It is widely known that smaller network is more difficult to learn successfully. It is easier to first train a large NN and then gradually reduce its size.
+
+<img src="assets/image-20240526134830493.png" alt="image-20240526134830493" style="zoom:30%;" />
+
+<img src="assets/image-20240526135040715.png" alt="image-20240526135040715" style="zoom:33%;" />
+
+The **Lottery Ticket Hypothesis** states that a large network is like a bunch of sub-networks so that we have a higher chance of train the network successfully. 
+
+## Other ways
+
+### Knowledge Distillation
+
+There are two NNs: one large Teacher Net, one small Student Net.
+
+<img src="assets/image-20240526142007275.png" alt="image-20240526142007275" style="zoom:33%;" />
+
+The Student Net can hopefully learn the information that "1" is similar to "7" from the output of the Teacher Net. This is better than simply learning from the dataset labels. In practice, we may also use an ensemble NN to represent the Teacher Net. 
+
+We may add **Temperature for softmax** $T$, a *hyperparameter*, when doing Knowledge Distillation:
+
+$$
+y_i' = \frac{\exp{\frac{y_i}{T}}}{\sum_j \exp{\frac{y_j}{T}}}
+$$
+
+<img src="assets/image-20240526143053309.png" alt="image-20240526143053309" style="zoom:33%;" />
+
+The temperature can help make sharp distribution a little bit *smoother*. This is critical because vanilla softmax can produce results very similar to the one-hot label in the dataset.
+
+### Parameter Quantization
+
+#### Less Bits
+
+We can use less bits to represent a value (lowering the numerical precision).
+
+#### Weight Clustering
+
+<img src="assets/image-20240526145421852.png" alt="image-20240526145421852" style="zoom:38%;" />
+
+#### Huffman encoding
+
+We can represent frequent clusters by less bits, represent rare clusters by more bits.
+
+#### Binary Weights
+
+It's even possible to make your weights always $+1$ or $-1$​. One classical example is Binary Connect.
+
+### Architecture Design: Depthwise Seperable Convolution
+
+#### Depthwise Convolution
+
+Depthwise convolution considers the interaction within a specific channel.
+
+<img src="assets/image-20240526150741632.png" alt="image-20240526150741632" style="zoom:33%;" />
+
+The filter number must be equal to the input channel number (each filter only considers one channel). The number of input channels must be equal to the number of output channels. The filters are $k \times k$ matrices. 
+
+However, one problem is that there is no interaction between channels.
+
+#### Pointwise Convolution
+
+Pointwise convolution considers the interaction amongst channels.
+
+<img src="assets/image-20240526151334552.png" alt="image-20240526151334552" style="zoom:36%;" />
+
+The filter number does not have to be equal to the input channel number. However, we force the filter size to be $1 \times 1$.
+
+#### Number of Parameters Comparison
+
+<img src="assets/image-20240526151706549.png" alt="image-20240526151706549" style="zoom:38%;" />
+
+Since $O$ is usually a very large number, we can safely ignore $\frac{1}{O}$. Therefore, the standard CNN uses $k^2$ times more parameters than Depthwise Seperable Convolution.
+
+#### Low rank approximation
+
+$$
+M = WN=U(VN)=(UV)N
+$$
+
+Therefore, we can approximate the matrix $W=UV$ though there're some constraints on $W$ (it's low-rank).
+
+<img src="assets/image-20240526152119201.png" alt="image-20240526152119201" style="zoom:38%;" />
+
+The Depthwise Seperable Convolution is very similar to this idea of using two layers to replace one layer in order to reduce the parameter size.
+
+<img src="assets/image-20240526153043698.png" alt="image-20240526153043698" style="zoom:33%;" />
 
