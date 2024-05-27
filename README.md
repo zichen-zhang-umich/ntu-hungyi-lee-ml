@@ -33,7 +33,6 @@ $$
 where $e_n$ can be calculated in many ways:
 
 **Mean Absolute Error (MAE)**
-
 $$
 e_n = |y_n - \hat{y}_n|
 $$
@@ -1614,6 +1613,10 @@ How do we use it for text-to-image tasks?
 
 <img src="assets/image-20240526212423419.png" alt="image-20240526212423419" style="zoom:33%;" />
 
+## Extra: VAE
+
+
+
 # 4/01 Recent Advance of Self-supervised learning for NLP
 
 ## Self-supervised Learning
@@ -2604,3 +2607,59 @@ There's also an older method called Gradient Episodic Memory (GEM):
 The learning order also plays a role in whether Catastrophic Forgetting occurs. Thus we have **Curriculum Learning**:
 
 <img src="assets/image-20240527111044274.png" alt="image-20240527111044274" style="zoom:33%;" />
+
+# 6/10 Lecture 15: Meta Learning
+
+## Meta Learning
+
+<img src="assets/image-20240527125929170.png" alt="image-20240527125929170" style="zoom:33%;" />
+
+We can define $\phi$, the **learnable components** of the **learning algorithm** $F_{\phi}$. For example, in DL, $\phi$ may include NN architecture, initial parameters, learning rate, etc. 
+
+We also need to define loss function $L(\phi)$ for learning algorithm $F_{\phi}$.  We need support of different tasks to conduct meta learning. This is often called **Across-Task Training**, whereas the vanilla machine learning is called **Within-Task Training**.
+
+<img src="assets/image-20240527133106496.png" alt="image-20240527133106496" style="zoom:33%;" />
+
+How do we evaluate the loss? We can evaluate the classifier on the testing set. Note that training examples (often called **support set**) and testing examples (often called **query set**) here are both in the training *task*.
+
+<img src="assets/image-20240527132844607.png" alt="image-20240527132844607" style="zoom:38%;" />
+
+The loss $l^i$ is the sum of cross entropy for each datapoint. We can then define our total loss $L(\phi) = \sum_{i=1}^{N} l^i$, where $N$​ is the number of training *tasks*. We can then find the optimal $\phi^* = \arg \min_{\phi} L(\phi)$​​.
+
+Here, the loss of meta learning is different from ML:
+
+<img src="assets/image-20240527135738166.png" alt="image-20240527135738166" style="zoom:28%;" />
+
+Using the optimization approach, if you know how to compute $\frac{\partial L(\phi)}{\partial \phi}$, gradient descent is your friend. What if $L(\phi)$ is not differentiable (for example, $\phi$ is a *discrete* value such as the number of layers in the network)? We can use Reinforcement Learning or Evolutionary Algorithm. We can therefore get a learned “learning algorithm” $F_{\phi^*}$.
+
+In typical ML, you compute the loss based on *training* examples. In meta learning, you compute the loss based on *testing* examples.
+
+The general framework of meta learning looks like this:
+
+<img src="assets/image-20240527133632296.png" alt="image-20240527133632296" style="zoom:33%;" />
+
+Note that in the testing time, meta learning is different from vanilla ML as it uses **Across-Task Testing**. The process of one Within-Task Training and one Within-Task Testing is called one **episode**.
+
+<img src="assets/image-20240527135358082.png" alt="image-20240527135358082" style="zoom:33%;" />
+
+Across-Task Training is often called the outer loop and Within-Task Training is often called the inner loop.
+
+<img src="assets/image-20240527140325362.png" alt="image-20240527140325362" style="zoom:30%;" />
+
+Meta learning is often used to achieve **one-shot learning** -- we only need a few examples to train a network if the learning algorithm is good enough.
+
+Machine learning is about finding a function $f$. Meta learning is about finding a function $F$ that finds a function $f$​.
+
+What you know about ML can usually apply to meta learning:
+
+- Overfitting on training tasks 
+- Get more training tasks to improve performance 
+- Task augmentation 
+- There are also hyperparameters when learning a learning algorithm (But hopefully, we can obtain an optimal learning algorithm that can be applied on future tasks)
+- Development tasks, alongside training tasks and testing tasks (just like development set used in ML)
+
+Recalled the gradient descent algorithm:
+
+<img src="assets/image-20240527141850831.png" alt="image-20240527141850831" style="zoom:33%;" />
+
+We can learn the initialized parameter $\boldsymbol{\theta}$ (this idea is in MAML).
