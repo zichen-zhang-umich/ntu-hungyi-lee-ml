@@ -1613,10 +1613,6 @@ How do we use it for text-to-image tasks?
 
 <img src="assets/image-20240526212423419.png" alt="image-20240526212423419" style="zoom:33%;" />
 
-## Extra: VAE
-
-
-
 # 4/01 Recent Advance of Self-supervised learning for NLP
 
 ## Self-supervised Learning
