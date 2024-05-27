@@ -2571,3 +2571,36 @@ $$
 
 ## Preparation 2: Solutions
 
+### Selective Synaptic Plasticity
+
+This is a **regularization**-based approach.
+
+Here is a clear visualization explaining why Catastrophic Forgetting would occur.
+
+<img src="assets/image-20240527101146833.png" alt="image-20240527101146833" style="zoom:33%;" />
+
+The basic idea of Selective Synaptic Plasticity is that some parameters in the model are important to the previous tasks. We shall only change the *unimportant* parameters.
+
+We can revise the loss function that we want to minimize.
+
+$$
+L'(\boldsymbol{\theta}) = L(\boldsymbol{\theta}) + 
+\lambda \sum_i b_i (\theta_i - \theta_{i}^{b})^2
+$$
+
+Each parameter learned from the previous tasks $\theta_i^b$ has a "guard" $b_i$ representing how important the parameter is to the previous tasks. $\theta_i$ is the parameter to be learning. $L(\boldsymbol{\theta})$ is the loss for current task.
+
+- If $b_i=0$, there's no constraint on $\theta_i$. This will lead to Catastrophic Forgetting.
+- If $b_i = \infty$, $\theta_i$ would always be equal to $\theta_i^b$​. This will prevent the model from learning anything from training, leading to **Intransigence**.
+
+We humans set the values of $b_i$. Different papers have talked about different ways to calculate the value of $b_i$.
+
+<img src="assets/image-20240527103024717.png" alt="image-20240527103024717" style="zoom:33%;" />
+
+There's also an older method called Gradient Episodic Memory (GEM):
+
+<img src="assets/image-20240527105918632.png" alt="image-20240527105918632" style="zoom:33%;" />
+
+The learning order also plays a role in whether Catastrophic Forgetting occurs. Thus we have **Curriculum Learning**:
+
+<img src="assets/image-20240527111044274.png" alt="image-20240527111044274" style="zoom:33%;" />
